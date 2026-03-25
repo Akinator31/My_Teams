@@ -1,17 +1,11 @@
-mod bindings;
-
-use std::ffi::CString;
 use std::io::BufRead;
-use crate::bindings::client_event_team_created;
+use libs::ClientLog;
 
 fn test_logging_lib() {
-    let team_uuid = CString::new("ff4c8d30-5425-40b2-b5ff-594dac395a14").unwrap();
-    let team_name = CString::new("Team Test").unwrap();
-    let user_uuid = CString::new("2a65796e-0c66-4dd4-bda1-56eb28392195").unwrap();
-
-    unsafe {
-        client_event_team_created(team_uuid.as_ptr(), team_name.as_ptr(), user_uuid.as_ptr());
-    }
+    let _ = ClientLog::client_event_logged_in(
+        "2a65796e-0c66-4dd4-bda1-56eb28392195".to_string(),
+        "alice".to_string(),
+    );
 }
 
 fn main() {
