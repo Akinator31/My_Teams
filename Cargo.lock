@@ -3,9 +3,19 @@
 version = 4
 
 [[package]]
+name = "libs"
+version = "0.1.0"
+
+[[package]]
 name = "myteams_cli"
 version = "0.1.0"
+dependencies = [
+ "libs",
+]
 
 [[package]]
 name = "myteams_server"
 version = "0.1.0"
+dependencies = [
+ "libs",
+]

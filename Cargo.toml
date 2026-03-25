@@ -2,6 +2,6 @@
 resolver = "3"
 
 members = [
-    "client",
+    "client", "libs",
     "server",
 ]
