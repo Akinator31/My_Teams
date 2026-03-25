@@ -1,4 +1,6 @@
-myteams_cli
-myteams_server
+myteams_cli*
+myteams_server*
 target/
 .idea/
+**/.DS_Store
+.DS_Store
