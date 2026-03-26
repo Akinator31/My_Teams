@@ -1,10 +1,14 @@
 use std::fmt;
 use std::fmt::Formatter;
+use std::io::Error;
+use std::num::ParseIntError;
 
 #[derive(Debug)]
 pub enum MyTeamsServerError {
     IncorrectArguments,
-    FailedToBind,
+    ServerPortParseError,
+    IoError,
+    ClientConnectionError,
 }
 
 impl fmt::Display for MyTeamsServerError {
@@ -16,10 +20,37 @@ impl fmt::Display for MyTeamsServerError {
                     "Wrong number of arguments! You must provide the port the server should listen on! See help command for more details."
                 )
             }
-            MyTeamsServerError::FailedToBind => {
-                write!(f, "Failed to bind TCP server port!")
+            MyTeamsServerError::ServerPortParseError => {
+                write!(
+                    f,
+                    "Failed to parse the given server port! It must be a value from 1 to 65 535!"
+                )
+            }
+            MyTeamsServerError::IoError => {
+                write!(
+                    f,
+                    "IO Error!"
+                )
+            },
+            MyTeamsServerError::ClientConnectionError => {
+                write!(
+                    f,
+                    "An error occurred during the client connection!"
+                )
             }
         }
+    }
+}
+
+impl From<ParseIntError> for MyTeamsServerError {
+    fn from(_value: ParseIntError) -> Self {
+        MyTeamsServerError::ServerPortParseError
+    }
+}
+
+impl From<Error> for MyTeamsServerError {
+    fn from(_value: Error) -> Self {
+        MyTeamsServerError::IoError
     }
 }
 
