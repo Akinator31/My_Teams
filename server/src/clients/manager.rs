@@ -26,7 +26,10 @@ impl MyTeamsClientManager {
     pub fn connect_client(&mut self) -> Result<(), MyTeamsServerError> {
         match self.listener.accept() {
             Ok((client_stream, _client_addr)) => {
-                self.clients.push(Client::new(client_stream));
+                let new_client = Client::new(client_stream);
+                println!("New client connected : {:?}", new_client);
+                
+                self.clients.push(new_client);
 
                 Ok(())
             },
