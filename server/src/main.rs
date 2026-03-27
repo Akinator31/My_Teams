@@ -20,7 +20,9 @@ fn main() -> Result<(), Box<dyn Error>> {
             break;
         }
 
-        server.handle_incoming_connections()?;
+        server.client_manager.connect_client()?;
+
+        server.client_manager.receive_clients_data()?;
     }
 
     Ok(())

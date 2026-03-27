@@ -5,8 +5,8 @@ use crate::errors::myteams_errors::MyTeamsServerError;
 use crate::errors::myteams_errors::MyTeamsServerError::ClientConnectionError;
 
 pub struct MyTeamsClientManager {
-    clients: Vec<Client>,
-    listener: TcpListener,
+    pub clients: Vec<Client>,
+    pub listener: TcpListener,
 }
 
 impl MyTeamsClientManager {
@@ -17,10 +17,10 @@ impl MyTeamsClientManager {
         Ok(Self { clients, listener })
     }
 
-    pub fn set_nonblocking(&self, value: bool) -> Result<(), MyTeamsServerError> {
+    pub fn set_nonblocking(&self, value: bool) -> Result<&MyTeamsClientManager, MyTeamsServerError> {
         self.listener.set_nonblocking(value)?;
 
-        Ok(())
+        Ok(self)
     }
 
     pub fn connect_client(&mut self) -> Result<(), MyTeamsServerError> {
@@ -36,5 +36,14 @@ impl MyTeamsClientManager {
             Err(e) if e.kind() == WouldBlock => Ok(()),
             Err(_) => Err(ClientConnectionError)
         }
+    }
+
+    pub fn receive_clients_data(&mut self) -> Result<&MyTeamsClientManager, MyTeamsServerError> {
+        for client in &mut self.clients {
+            println!("{:?}", client);
+            client.read()?;
+        }
+
+        Ok(self)
     }
 }

@@ -24,10 +24,4 @@ impl MyTeamsServer {
 
         Ok(Self { client_manager })
     }
-
-    pub fn handle_incoming_connections(&mut self) -> Result<(), MyTeamsServerError>{
-        self.client_manager.connect_client()?;
-
-        Ok(())
-    }
 }

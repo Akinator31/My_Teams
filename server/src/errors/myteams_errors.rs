@@ -1,6 +1,7 @@
 use std::fmt;
 use std::fmt::Formatter;
 use std::io::Error;
+use std::net::TcpStream;
 use std::num::ParseIntError;
 
 #[derive(Debug)]
@@ -9,6 +10,7 @@ pub enum MyTeamsServerError {
     ServerPortParseError,
     IoError,
     ClientConnectionError,
+    ClientDisconnected(String),
 }
 
 impl fmt::Display for MyTeamsServerError {
@@ -36,6 +38,12 @@ impl fmt::Display for MyTeamsServerError {
                 write!(
                     f,
                     "An error occurred during the client connection!"
+                )
+            }
+            MyTeamsServerError::ClientDisconnected(info) => {
+                write!(
+                    f,
+                    "A client has disconnected : {:?}", info
                 )
             }
         }
