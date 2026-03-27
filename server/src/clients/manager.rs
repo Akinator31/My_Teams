@@ -1,6 +1,6 @@
 use std::io::ErrorKind::WouldBlock;
 use std::net::{TcpListener};
-use crate::clients::client::Client;
+use crate::clients::client::{Client, ClientState};
 use crate::errors::myteams_errors::MyTeamsServerError;
 use crate::errors::myteams_errors::MyTeamsServerError::ClientConnectionError;
 
@@ -40,10 +40,21 @@ impl MyTeamsClientManager {
 
     pub fn receive_clients_data(&mut self) -> Result<&MyTeamsClientManager, MyTeamsServerError> {
         for client in &mut self.clients {
-            println!("{:?}", client);
             client.read()?;
         }
 
         Ok(self)
+    }
+
+    pub fn disconnect_client(&mut self) -> Result<(), MyTeamsServerError> {
+        self.clients.retain(|client| {
+            if client.state == ClientState::ToBeDisconnected {
+                println!("Client disconnected! {:?}", client);
+                return false;
+            }
+            return true;
+        });
+
+        Ok(())
     }
 }

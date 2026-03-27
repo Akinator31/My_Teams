@@ -23,6 +23,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         server.client_manager.connect_client()?;
 
         server.client_manager.receive_clients_data()?;
+
+        server.client_manager.disconnect_client()?;
     }
 
     Ok(())
