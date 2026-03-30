@@ -1,10 +1,7 @@
-use std::collections::HashMap;
 use std::io::{Read, Write};
 use std::io::ErrorKind::WouldBlock;
 use std::net::TcpStream;
-use std::sync::OnceLock;
 use crate::clients::client::ClientState::ToBeDisconnected;
-use crate::clients::client::ReplyCode::{BadRequest, Okay};
 use crate::errors::myteams_errors::MyTeamsServerError;
 
 #[derive(Debug, PartialEq)]
@@ -18,18 +15,15 @@ pub enum ClientState {
 pub enum ReplyCode {
     Okay,
     BadRequest,
+    UserLoggedIn(String)
 }
 
-static RESPONSES: OnceLock<HashMap<ReplyCode, String>> = OnceLock::new();
-
-fn responses() -> &'static HashMap<ReplyCode, String> {
-    RESPONSES.get_or_init(|| {
-        let mut res = HashMap::new();
-
-        res.insert(Okay, "200 Connected to MyTeams server\r\n".to_string());
-        res.insert(BadRequest, "400 Bad request\r\n".to_string());
-        res
-    })
+pub fn format_reply(code: ReplyCode) -> String {
+    match code {
+        ReplyCode::Okay => "200 Connected to MyTeams server\r\n".to_string(),
+        ReplyCode::BadRequest => "400 Bad request\r\n".to_string(),
+        ReplyCode::UserLoggedIn(username) => format!("210 User logged in. UUID: {}\r\n", username),
+    }
 }
 
 #[derive(Debug)]
@@ -79,7 +73,7 @@ impl Client {
     }
 
     pub fn write(&mut self, code: ReplyCode) {
-        let response = responses()[&code].to_string();
+        let response = format_reply(code);
 
         loop {
             match (self.stream).write_all(response.as_bytes()) {
