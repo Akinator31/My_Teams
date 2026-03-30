@@ -1,6 +1,7 @@
 use std::io::ErrorKind::WouldBlock;
 use std::net::{TcpListener};
 use crate::clients::client::{Client, ClientState};
+use crate::clients::client::ReplyCode::Okay;
 use crate::errors::myteams_errors::MyTeamsServerError;
 use crate::errors::myteams_errors::MyTeamsServerError::ClientConnectionError;
 
@@ -26,9 +27,10 @@ impl MyTeamsClientManager {
     pub fn connect_client(&mut self) -> Result<(), MyTeamsServerError> {
         match self.listener.accept() {
             Ok((client_stream, _client_addr)) => {
-                let new_client = Client::new(client_stream);
+                let mut new_client = Client::new(client_stream);
                 println!("New client connected : {:?}", new_client);
-                
+
+                new_client.write(Okay);
                 self.clients.push(new_client);
 
                 Ok(())

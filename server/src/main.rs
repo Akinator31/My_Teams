@@ -5,7 +5,7 @@ mod utils;
 
 use std::error::Error;
 use std::sync::atomic::Ordering;
-use crate::server::MyTeamsServer;
+use crate::server::server::MyTeamsServer;
 use crate::utils::signals::{setup_signal_handler, SHUTDOWN};
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -25,6 +25,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         server.client_manager.receive_clients_data()?;
 
         server.client_manager.disconnect_client()?;
+
+        server.execute_clients_pending_command();
     }
 
     Ok(())
