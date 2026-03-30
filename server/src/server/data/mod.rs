@@ -2,6 +2,7 @@ use crate::server::data::user::User;
 
 pub mod user;
 
+#[derive(Clone)]
 pub struct MyTeamsServerData {
     users: Vec<User>,
 }
@@ -23,7 +24,7 @@ impl MyTeamsServerData {
     pub fn create_user(&mut self, user_name: &String) -> User {
         let new_user = User::new(user_name.clone());
 
-        self.users.push(User::new(user_name.clone()));
+        self.users.push(new_user.clone());
         new_user
     }
 

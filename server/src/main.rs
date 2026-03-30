@@ -8,6 +8,10 @@ use std::sync::atomic::Ordering;
 use crate::server::server::MyTeamsServer;
 use crate::utils::signals::{setup_signal_handler, SHUTDOWN};
 
+static MAX_NAME_LENGTH: u8 = 32;
+static MAX_DESCRIPTION_LENGTH: u8 = 255;
+static MAX_BODY_LENGTH: u16 = 512;
+
 fn main() -> Result<(), Box<dyn Error>> {
     let mut server = MyTeamsServer::new()?;
 
