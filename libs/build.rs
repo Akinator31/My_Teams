@@ -15,10 +15,10 @@ fn main() {
 
     if cfg!(target_os = "linux") {
         println!("cargo:rustc-link-search=native={}", lib_dir.display());
-        println!("cargo:rustc-link-lib=dylib=myteams_linux");
+        println!("cargo:rustc-link-lib=dylib=myteams");
         println!(
             "cargo:rerun-if-changed={}",
-            lib_dir.join("libmyteams_linux.so").display()
+            lib_dir.join("libmyteams.so").display()
         );
     }
 }

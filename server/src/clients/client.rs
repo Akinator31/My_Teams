@@ -37,6 +37,8 @@ pub struct Client {
     stream: TcpStream,
     incoming_data_buffer: Vec<u8>,
     pub state: ClientState,
+
+    pub uuid: Option<String>
 }
 
 impl Client {
@@ -45,10 +47,10 @@ impl Client {
         let state = ClientState::None;
 
         match stream.set_nonblocking(true) {
-            Ok(_) => Self { stream, incoming_data_buffer, state },
+            Ok(_) => Self { stream, incoming_data_buffer, state, uuid: None },
             Err(e) => {
                 println!("Failed to set client socket non blocking: {}", e.to_string());
-                Self {stream, incoming_data_buffer, state }
+                Self {stream, incoming_data_buffer, state, uuid: None }
             }
         }
     }

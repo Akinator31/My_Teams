@@ -1,2 +1,2 @@
 pub mod signals;
-mod uuid;
+pub mod uuid;

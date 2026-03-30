@@ -1,7 +1,7 @@
 use std::fs::File;
 use std::io::Read;
 
-fn get_uuid() -> String {
+pub fn get_uuid() -> String {
     let mut uuid = String::new();
     let mut uuid_file = File::open("").unwrap();
 

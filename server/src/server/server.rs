@@ -2,7 +2,7 @@ use std::env::{args, Args};
 use crate::clients::client::ReplyCode::BadRequest;
 use crate::clients::manager::MyTeamsClientManager;
 use crate::errors::myteams_errors::MyTeamsServerError;
-use crate::server::commands::commands;
+use crate::server::commands::commands::commands;
 
 fn get_server_port(args: Args) -> Result<String, MyTeamsServerError> {
     if args.len() != 2 {
@@ -37,7 +37,10 @@ impl MyTeamsServer {
                 }
 
                 if let Some(command_func) = commands().get(&command_name.to_string()) {
-                    command_func(client, command);
+                    let command_args: String = command.chars().skip(command_name.len()).collect::<String>();
+                    if !command_func(client, command_args) {
+                        client.write(BadRequest);
+                    }
                 } else {
                     client.write(BadRequest);
                 }

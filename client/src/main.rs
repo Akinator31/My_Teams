@@ -35,6 +35,8 @@ fn client() {
 fn main() {
     let args = args();
 
+    libs::ClientLog::client_event_logged_in("Holamos".to_string(), "Holamos".to_string());
+
     if args.len() != 3 {
         println!("NON");
         exit(84);
