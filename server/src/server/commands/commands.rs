@@ -2,8 +2,9 @@ use std::collections::HashMap;
 use std::sync::OnceLock;
 use crate::clients::client::Client;
 use crate::server::commands::login::login;
+use crate::server::data::MyTeamsServerData;
 
-type CommandType = HashMap<String, fn(&mut Client, String) -> bool>;
+type CommandType = HashMap<String, fn(&mut MyTeamsServerData, &mut Client, String) -> bool>;
 
 static COMMANDS: OnceLock<CommandType> = OnceLock::new();
 

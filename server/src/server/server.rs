@@ -3,6 +3,7 @@ use crate::clients::client::ReplyCode::BadRequest;
 use crate::clients::manager::MyTeamsClientManager;
 use crate::errors::myteams_errors::MyTeamsServerError;
 use crate::server::commands::commands::commands;
+use crate::server::data::MyTeamsServerData;
 
 fn get_server_port(args: Args) -> Result<String, MyTeamsServerError> {
     if args.len() != 2 {
@@ -17,6 +18,8 @@ fn get_server_port(args: Args) -> Result<String, MyTeamsServerError> {
 
 pub struct MyTeamsServer {
     pub client_manager: MyTeamsClientManager,
+
+    pub data: MyTeamsServerData,
 }
 
 impl MyTeamsServer {
@@ -24,7 +27,7 @@ impl MyTeamsServer {
         let port = get_server_port(args())?.parse::<u16>()?;
         let client_manager = MyTeamsClientManager::new(port)?;
 
-        Ok(Self { client_manager })
+        Ok(Self { client_manager, data: MyTeamsServerData::new() })
     }
 
     pub fn execute_clients_pending_command(&mut self) {
@@ -38,7 +41,7 @@ impl MyTeamsServer {
 
                 if let Some(command_func) = commands().get(&command_name.to_string()) {
                     let command_args: String = command.chars().skip(command_name.len()).collect::<String>();
-                    if !command_func(client, command_args) {
+                    if !command_func(&mut self.data, client, command_args) {
                         client.write(BadRequest);
                     }
                 } else {
