@@ -15,7 +15,8 @@ pub enum ClientState {
 pub enum ReplyCode {
     Okay,
     BadRequest,
-    UserLoggedIn(String)
+    UserLoggedIn(String),
+    UserLoggedOut,
 }
 
 pub fn format_reply(code: ReplyCode) -> String {
@@ -23,6 +24,7 @@ pub fn format_reply(code: ReplyCode) -> String {
         ReplyCode::Okay => "200 Connected to MyTeams server\r\n".to_string(),
         ReplyCode::BadRequest => "400 Bad request\r\n".to_string(),
         ReplyCode::UserLoggedIn(username) => format!("210 User logged in. UUID: {}\r\n", username),
+        ReplyCode::UserLoggedOut => "211 User logged out.\r\n".to_string(),
     }
 }
 
