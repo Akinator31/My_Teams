@@ -6,6 +6,10 @@ use std::io::BufRead;
 use std::process::exit;
 use crate::commands::commands::commands;
 
+fn usage(binName: String) {
+    println!("USAGE: {} <ip> <port>", binName);
+}
+
 fn client() {
     let stdin = std::io::stdin();
     let mut lines = stdin.lock().lines();
@@ -33,12 +37,11 @@ fn client() {
 }
 
 fn main() {
-    let args = args();
+    let args: Vec<String> = args().collect();
 
-    libs::ClientLog::client_event_logged_in("Holamos".to_string(), "Holamos".to_string());
-
+    // libs::ClientLog::client_event_logged_in("Holamos".to_string(), "Holamos".to_string());
     if args.len() != 3 {
-        println!("NON");
+        usage(args[0].clone());
         exit(84);
     }
 }
