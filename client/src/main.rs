@@ -7,8 +7,8 @@ use std::net::TcpStream;
 use std::process::exit;
 use crate::commands::commands::commands;
 
-fn usage(binName: String) {
-    println!("USAGE: {} <ip> <port>", binName);
+fn usage(bin_name: String) {
+    println!("USAGE: {} <ip> <port>", bin_name);
 }
 
 fn client(mut stream: TcpStream) {
