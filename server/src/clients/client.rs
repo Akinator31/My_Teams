@@ -1,5 +1,7 @@
 use crate::clients::client::ClientState::ToBeDisconnected;
 use crate::errors::myteams_errors::MyTeamsServerError;
+use crate::server::data::Message;
+use std::fmt::{Display, Formatter};
 use std::io::ErrorKind::WouldBlock;
 use std::io::{Read, Write};
 use std::net::TcpStream;
@@ -11,10 +13,18 @@ pub enum ClientState {
 }
 
 #[derive(Debug, PartialEq, Eq, Hash)]
+pub enum OkeyResponse {
+    Connected,
+    EndOfMessages,
+}
+
+#[derive(Debug, PartialEq, Eq, Hash)]
 pub enum SuccessCode {
-    Okay,
+    Okay(OkeyResponse),
     UserLoggedIn(String),
     UserLoggedOut,
+    MessageSent,
+    MessageListFollows(Message),
 }
 
 #[derive(Debug, PartialEq, Eq, Hash)]
@@ -36,14 +46,30 @@ pub enum EventType {
     UserUnsubscribed(String, String),
 }
 
+impl Display for OkeyResponse {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            OkeyResponse::Connected => write!(f, "Connected to MyTeams server"),
+            OkeyResponse::EndOfMessages => write!(f, "End of messages"),
+        }
+    }
+}
+
 impl From<SuccessCode> for String {
     fn from(value: SuccessCode) -> Self {
         match value {
-            SuccessCode::Okay => "200 Connected to MyTeams server\r\n".to_string(),
+            SuccessCode::Okay(message) => format!("200 {}\r\n", message),
             SuccessCode::UserLoggedIn(username) => {
                 format!("210 User logged in. UUID: {}\r\n", username)
             }
             SuccessCode::UserLoggedOut => "211 User logged out.\r\n".to_string(),
+            SuccessCode::MessageSent => "220 Message sent\r\n".to_string(),
+            SuccessCode::MessageListFollows(message) => {
+                format!(
+                    "221 \"{}\" \"{}\" \"{}\"\r\n",
+                    message.sender, message.timestamp, message.body
+                )
+            }
         }
     }
 }

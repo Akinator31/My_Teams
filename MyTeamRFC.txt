@@ -552,6 +552,10 @@ Table of Contents
       <- 221 SP <sender_uuid> <timestamp> <body> CRLF
          [one line per message]
       <- 200 SP End of messages. CRLF
+      
+      Errors:
+      <- 404 SP User not found. CRLF
+      <- 401 SP Unauthorized. CRLF
 
    7.8 Subscribe to a team
 

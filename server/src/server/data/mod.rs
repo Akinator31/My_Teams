@@ -1,13 +1,22 @@
 use crate::server::data::user::User;
+use crate::utils::get_timestamp;
+use std::collections::hash_map::Entry;
 use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
 
 pub mod user;
 
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+pub struct Message {
+    pub sender: String,
+    pub timestamp: i64,
+    pub body: String,
+}
+
 #[derive(Clone)]
 pub struct MyTeamsServerData {
     users: Vec<User>,
-    direct_messages: HashMap<UserPair, String>,
+    direct_messages: HashMap<UserPair, Vec<Message>>,
 }
 
 #[derive(Clone, Eq)]
@@ -55,7 +64,7 @@ impl MyTeamsServerData {
         new_user
     }
 
-    pub fn user_exist(&self, user_name: &String) -> Option<usize> {
+    pub fn user_exist_by_name(&self, user_name: &String) -> Option<usize> {
         for (user_index, user) in self.users.iter().enumerate() {
             if user.user_name == user_name.clone() {
                 return Some(user_index);
@@ -63,8 +72,42 @@ impl MyTeamsServerData {
         }
         None
     }
+
+    pub fn user_exist_by_uuid(&self, uuid: &String) -> Option<usize> {
+        for (user_index, user) in self.users.iter().enumerate() {
+            if user.uuid == uuid.clone() {
+                return Some(user_index);
+            }
+        }
+        None
+    }
+
     pub fn register_send_message(&mut self, pair: UserPair, message: String) {
-        self.direct_messages.insert(pair, message);
+        match self.direct_messages.entry(pair.clone()) {
+            Entry::Vacant(e) => {
+                e.insert(vec![Message {
+                    sender: pair.0,
+                    timestamp: get_timestamp(),
+                    body: message,
+                }]);
+            }
+            Entry::Occupied(mut e) => {
+                e.get_mut().push(Message {
+                    sender: pair.0,
+                    timestamp: get_timestamp(),
+                    body: message,
+                });
+            }
+        }
+    }
+
+    pub fn get_messages(&mut self, pair: UserPair) -> Option<Vec<Message>> {
+        for (user_pair, messages) in &self.direct_messages {
+            if *user_pair == pair {
+                return Some(messages.clone());
+            }
+        }
+        None
     }
 }
 
