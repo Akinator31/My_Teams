@@ -1,3 +1,4 @@
 pub mod commands;
 pub mod login;
-mod logout;
+pub mod logout;
+pub mod send;

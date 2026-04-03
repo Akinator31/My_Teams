@@ -19,12 +19,40 @@ pub enum ReplyCode {
     UserLoggedOut,
 }
 
-pub fn format_reply(code: ReplyCode) -> String {
-    match code {
-        ReplyCode::Okay => "200 Connected to MyTeams server\r\n".to_string(),
-        ReplyCode::BadRequest => "400 Bad request\r\n".to_string(),
-        ReplyCode::UserLoggedIn(username) => format!("210 User logged in. UUID: {}\r\n", username),
-        ReplyCode::UserLoggedOut => "211 User logged out.\r\n".to_string(),
+pub enum EventType {
+    UserLoggedIn(String, String),
+    UserLoggedOut(String, String),
+    TeamCreated(String, String, String, String),
+    ChannelCreated(String, String, String, String),
+    ThreadCreated(String, String, String, String, String),
+    ReplyCreated(String, String, String, String),
+    MessageReceived(String, String),
+    UserSubscribed(String, String),
+    UserUnsubscribed(String, String)
+}
+
+impl From<ReplyCode> for String {
+    fn from(value: ReplyCode) -> Self {
+        match value {
+            ReplyCode::Okay => "200 Connected to MyTeams server\r\n".to_string(),
+            ReplyCode::BadRequest => "400 Bad request\r\n".to_string(),
+            ReplyCode::UserLoggedIn(username) => format!("210 User logged in. UUID: {}\r\n", username),
+            ReplyCode::UserLoggedOut => "211 User logged out.\r\n".to_string(),
+        }
+    }
+}
+
+pub fn format_event(event: EventType) -> String {
+    match event {
+        EventType::UserLoggedIn(user_uuid, username) => format!("EVENT USER_LOGGED_IN \"{}\" \"{}\"\r\n", user_uuid, username),
+        EventType::UserLoggedOut(user_uuid, username) => format!("EVENT USER_LOGGED_OUT \"{}\" \"{}\"\r\n", user_uuid, username),
+        EventType::TeamCreated(team_uuid, name, description, creator_uuid) => format!("EVENT TEAM_CREATED \"{}\" \"{}\" \"{}\" \"{}\"\r\n", team_uuid, name, description, creator_uuid),
+        EventType::ChannelCreated(channel_uuid, name, description, team_uuid) => format!("EVENT CHANNEL_CREATED \"{}\" \"{}\" \"{}\" \"{}\"\r\n", channel_uuid, name, description, team_uuid),
+        EventType::ThreadCreated(thread_uuid, title, message, creator_uuid, channel_uuid) => format!("EVENT THREAD_CREATED \"{}\" \"{}\" \"{}\" \"{}\" \"{}\"\r\n", thread_uuid, title, message, creator_uuid, channel_uuid),
+        EventType::ReplyCreated(comment_uuid, body, creator_uuid, thread_uuid) => format!("EVENT REPLY_CREATED \"{}\" \"{}\" \"{}\" \"{}\"\r\n", comment_uuid, body, creator_uuid, thread_uuid),
+        EventType::MessageReceived(sender_uuid, body) => format!("EVENT MESSAGE_RECEIVED \"{}\" \"{}\"\r\n", sender_uuid, body),
+        EventType::UserSubscribed(user_uuid, team_uuid) => format!("EVENT USER_SUBSCRIBED \"{}\" \"{}\"\r\n", user_uuid, team_uuid),
+        EventType::UserUnsubscribed(user_uuid, team_uuid) => format!("EVENT TEAM_CREATED \"{}\" \"{}\"\r\n", user_uuid, team_uuid),
     }
 }
 
@@ -74,11 +102,11 @@ impl Client {
         }
     }
 
-    pub fn write(&mut self, code: ReplyCode) {
-        let response = format_reply(code);
+    pub fn write(&mut self, message: impl Into<String>) {
+        let message = message.into();
 
         loop {
-            match (self.stream).write_all(response.as_bytes()) {
+            match (self.stream).write_all(message.as_bytes()) {
                 Ok(_) => break,
                 Err(e) if e.kind() == WouldBlock => {
                     continue;
@@ -98,5 +126,11 @@ impl Client {
         } else {
             None
         }
+    }
+
+    pub fn send_event(&mut self, event_type: EventType) {
+        let formated_event_response = format_event(event_type);
+
+        self.write(formated_event_response);
     }
 }

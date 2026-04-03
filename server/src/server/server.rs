@@ -31,22 +31,28 @@ impl MyTeamsServer {
     }
 
     pub fn execute_clients_pending_command(&mut self) {
-        for client in &mut self.client_manager.clients {
-            if let Some(command) = client.get_pending_command() {
-                let mut command_name = command.split(" ").next().unwrap_or("");
+        let pending: Vec<(usize, String)> = self.client_manager.clients
+            .iter_mut()
+            .enumerate()
+            .filter_map(|(i, client)| {
+                client.get_pending_command().map(|cmd| (i, cmd))
+            })
+            .collect();
 
-                if command_name == command {
-                    command_name = command.split("\r\n").next().unwrap_or("");
-                }
+        for (index, command) in pending {
+            let mut command_name = command.split(" ").next().unwrap_or("");
 
-                if let Some(command_func) = commands().get(&command_name.to_string()) {
-                    let command_args: String = command.chars().skip(command_name.len()).collect::<String>();
-                    if !command_func(&mut self.data, client, command_args) {
-                        client.write(BadRequest);
-                    }
-                } else {
-                    client.write(BadRequest);
+            if command_name == command {
+                command_name = command.split("\r\n").next().unwrap_or("");
+            }
+
+            if let Some(command_func) = commands().get(&command_name.to_string()) {
+                let command_args: String = command.chars().skip(command_name.len()).collect::<String>();
+                if !command_func(self, index, command_args) {
+                    self.client_manager.clients[index].write(BadRequest);
                 }
+            } else {
+                self.client_manager.clients[index].write(BadRequest);
             }
         }
     }
