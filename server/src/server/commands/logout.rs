@@ -1,6 +1,5 @@
-use crate::clients::client::Client;
 use crate::clients::client::ReplyCode::UserLoggedOut;
-use crate::server::data::MyTeamsServerData;
+use crate::server::server::MyTeamsServer;
 
 fn check_command_format(command_args: &str) -> Option<String> {
     let mut parts = command_args.split(' ');
@@ -10,7 +9,9 @@ fn check_command_format(command_args: &str) -> Option<String> {
     }
 }
 
-pub fn logout(_server_data: &mut MyTeamsServerData, client: &mut Client, command_args: String) -> bool {
+pub fn logout(server: &mut MyTeamsServer, client_index: usize, command_args: String) -> bool {
+    let client = &mut server.client_manager.clients[client_index];
+
     if let Some(_) = check_command_format(&command_args) {
         if client.uuid.is_none() {
             return false;

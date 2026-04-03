@@ -59,4 +59,18 @@ impl MyTeamsClientManager {
 
         Ok(())
     }
+    
+    pub fn is_client_logged_in(&self, client_uuid: String) -> Option<usize> {
+        for (client_index, client) in self.clients.iter().enumerate() {
+            match &client.uuid {
+                Some(uuid) => {
+                    if *uuid == client_uuid {
+                        return Some(client_index);
+                    }
+                },
+                None => continue
+            }
+        }
+        None
+    }
 }
