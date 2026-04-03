@@ -1,7 +1,6 @@
 use std::fmt;
 use std::fmt::Formatter;
 use std::io::Error;
-use std::net::TcpStream;
 use std::num::ParseIntError;
 
 #[derive(Debug)]
