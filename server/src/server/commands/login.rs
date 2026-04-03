@@ -1,23 +1,13 @@
 use crate::clients::client::SuccessCode::UserLoggedIn;
+use crate::server::commands::check_command_format;
 use crate::server::server::MyTeamsServer;
-use crate::utils::parsing::parse_quoted_args;
 use crate::MAX_NAME_LENGTH;
-
-fn check_command_format(command_args: &str) -> Option<String> {
-    let args = parse_quoted_args(command_args);
-
-    if args.len() == 1 {
-        Some(args[0].clone())
-    } else {
-        None
-    }
-}
 
 pub fn login(server: &mut MyTeamsServer, client_index: usize, command_args: String) -> bool {
     let client = &mut server.client_manager.clients[client_index];
 
     if let Some(user_name) = check_command_format(&command_args) {
-        if server.data.user_exist(&user_name).is_none() {
+        if server.data.user_exist_by_name(&user_name).is_none() {
             if user_name.len() > MAX_NAME_LENGTH as usize {
                 return false;
             }
