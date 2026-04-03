@@ -52,7 +52,7 @@ impl MyTeamsServer {
             if let Some(command_func) = commands().get(&command_name.to_string()) {
                 let command_args: String =
                     command.chars().skip(command_name.len()).collect::<String>();
-                if !command_func(self, index, command_args) {
+                if !command_func(self, index, command_args.trim().to_string()) {
                     self.client_manager.clients[index].write(BadRequest);
                 }
             } else {

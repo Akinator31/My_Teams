@@ -1,7 +1,6 @@
-use std::collections::HashMap;
 use crate::utils::uuid::get_uuid;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct User {
     pub user_name: String,
     pub uuid: String,
@@ -9,6 +8,9 @@ pub struct User {
 
 impl User {
     pub fn new(user_name: String) -> Self {
-        Self {user_name, uuid: get_uuid() }
+        Self {
+            user_name,
+            uuid: get_uuid(),
+        }
     }
 }

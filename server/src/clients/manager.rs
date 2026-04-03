@@ -1,3 +1,4 @@
+use crate::clients::client::OkeyResponse::Connected;
 use crate::clients::client::SuccessCode::Okay;
 use crate::clients::client::{Client, ClientState};
 use crate::errors::myteams_errors::MyTeamsServerError;
@@ -33,7 +34,7 @@ impl MyTeamsClientManager {
                 let mut new_client = Client::new(client_stream);
                 println!("New client connected : {:?}", new_client);
 
-                new_client.write(Okay);
+                new_client.write(Okay(Connected));
                 self.clients.push(new_client);
 
                 Ok(())

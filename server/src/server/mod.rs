@@ -1,3 +1,3 @@
-pub mod server;
 pub mod commands;
-mod data;
+pub mod data;pub mod server;
+
