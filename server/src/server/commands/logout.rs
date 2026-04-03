@@ -1,4 +1,4 @@
-use crate::clients::client::ReplyCode::UserLoggedOut;
+use crate::clients::client::SuccessCode::UserLoggedOut;
 use crate::server::server::MyTeamsServer;
 
 fn check_command_format(command_args: &str) -> Option<String> {

@@ -1,9 +1,9 @@
-use std::io::ErrorKind::WouldBlock;
-use std::net::{TcpListener};
+use crate::clients::client::SuccessCode::Okay;
 use crate::clients::client::{Client, ClientState};
-use crate::clients::client::ReplyCode::Okay;
 use crate::errors::myteams_errors::MyTeamsServerError;
 use crate::errors::myteams_errors::MyTeamsServerError::ClientConnectionError;
+use std::io::ErrorKind::WouldBlock;
+use std::net::TcpListener;
 
 pub struct MyTeamsClientManager {
     pub clients: Vec<Client>,
@@ -18,7 +18,10 @@ impl MyTeamsClientManager {
         Ok(Self { clients, listener })
     }
 
-    pub fn set_nonblocking(&self, value: bool) -> Result<&MyTeamsClientManager, MyTeamsServerError> {
+    pub fn set_nonblocking(
+        &self,
+        value: bool,
+    ) -> Result<&MyTeamsClientManager, MyTeamsServerError> {
         self.listener.set_nonblocking(value)?;
 
         Ok(self)
@@ -34,9 +37,9 @@ impl MyTeamsClientManager {
                 self.clients.push(new_client);
 
                 Ok(())
-            },
+            }
             Err(e) if e.kind() == WouldBlock => Ok(()),
-            Err(_) => Err(ClientConnectionError)
+            Err(_) => Err(ClientConnectionError),
         }
     }
 
@@ -59,7 +62,7 @@ impl MyTeamsClientManager {
 
         Ok(())
     }
-    
+
     pub fn is_client_logged_in(&self, client_uuid: String) -> Option<usize> {
         for (client_index, client) in self.clients.iter().enumerate() {
             match &client.uuid {
@@ -67,8 +70,8 @@ impl MyTeamsClientManager {
                     if *uuid == client_uuid {
                         return Some(client_index);
                     }
-                },
-                None => continue
+                }
+                None => continue,
             }
         }
         None

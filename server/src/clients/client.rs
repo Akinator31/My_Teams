@@ -1,22 +1,27 @@
-use std::io::{Read, Write};
-use std::io::ErrorKind::WouldBlock;
-use std::net::TcpStream;
 use crate::clients::client::ClientState::ToBeDisconnected;
 use crate::errors::myteams_errors::MyTeamsServerError;
+use std::io::ErrorKind::WouldBlock;
+use std::io::{Read, Write};
+use std::net::TcpStream;
 
 #[derive(Debug, PartialEq)]
 pub enum ClientState {
     None,
-    ToBeDisconnected
+    ToBeDisconnected,
 }
 
-#[derive(Debug, PartialEq, Eq)]
-#[derive(Hash)]
-pub enum ReplyCode {
+#[derive(Debug, PartialEq, Eq, Hash)]
+pub enum SuccessCode {
     Okay,
-    BadRequest,
     UserLoggedIn(String),
     UserLoggedOut,
+}
+
+#[derive(Debug, PartialEq, Eq, Hash)]
+pub enum ErrorCode {
+    BadRequest,
+    NotFound,
+    Unauthorized,
 }
 
 pub enum EventType {
@@ -28,31 +33,70 @@ pub enum EventType {
     ReplyCreated(String, String, String, String),
     MessageReceived(String, String),
     UserSubscribed(String, String),
-    UserUnsubscribed(String, String)
+    UserUnsubscribed(String, String),
 }
 
-impl From<ReplyCode> for String {
-    fn from(value: ReplyCode) -> Self {
+impl From<SuccessCode> for String {
+    fn from(value: SuccessCode) -> Self {
         match value {
-            ReplyCode::Okay => "200 Connected to MyTeams server\r\n".to_string(),
-            ReplyCode::BadRequest => "400 Bad request\r\n".to_string(),
-            ReplyCode::UserLoggedIn(username) => format!("210 User logged in. UUID: {}\r\n", username),
-            ReplyCode::UserLoggedOut => "211 User logged out.\r\n".to_string(),
+            SuccessCode::Okay => "200 Connected to MyTeams server\r\n".to_string(),
+            SuccessCode::UserLoggedIn(username) => {
+                format!("210 User logged in. UUID: {}\r\n", username)
+            }
+            SuccessCode::UserLoggedOut => "211 User logged out.\r\n".to_string(),
+        }
+    }
+}
+
+impl From<ErrorCode> for String {
+    fn from(value: ErrorCode) -> Self {
+        match value {
+            ErrorCode::BadRequest => "400 Bad request\r\n".to_string(),
+            ErrorCode::NotFound => "404 Not found\r\n".to_string(),
+            ErrorCode::Unauthorized => "403 Forbidden (insufficient permissions)\r\n".to_string(),
         }
     }
 }
 
 pub fn format_event(event: EventType) -> String {
     match event {
-        EventType::UserLoggedIn(user_uuid, username) => format!("EVENT USER_LOGGED_IN \"{}\" \"{}\"\r\n", user_uuid, username),
-        EventType::UserLoggedOut(user_uuid, username) => format!("EVENT USER_LOGGED_OUT \"{}\" \"{}\"\r\n", user_uuid, username),
-        EventType::TeamCreated(team_uuid, name, description, creator_uuid) => format!("EVENT TEAM_CREATED \"{}\" \"{}\" \"{}\" \"{}\"\r\n", team_uuid, name, description, creator_uuid),
-        EventType::ChannelCreated(channel_uuid, name, description, team_uuid) => format!("EVENT CHANNEL_CREATED \"{}\" \"{}\" \"{}\" \"{}\"\r\n", channel_uuid, name, description, team_uuid),
-        EventType::ThreadCreated(thread_uuid, title, message, creator_uuid, channel_uuid) => format!("EVENT THREAD_CREATED \"{}\" \"{}\" \"{}\" \"{}\" \"{}\"\r\n", thread_uuid, title, message, creator_uuid, channel_uuid),
-        EventType::ReplyCreated(comment_uuid, body, creator_uuid, thread_uuid) => format!("EVENT REPLY_CREATED \"{}\" \"{}\" \"{}\" \"{}\"\r\n", comment_uuid, body, creator_uuid, thread_uuid),
-        EventType::MessageReceived(sender_uuid, body) => format!("EVENT MESSAGE_RECEIVED \"{}\" \"{}\"\r\n", sender_uuid, body),
-        EventType::UserSubscribed(user_uuid, team_uuid) => format!("EVENT USER_SUBSCRIBED \"{}\" \"{}\"\r\n", user_uuid, team_uuid),
-        EventType::UserUnsubscribed(user_uuid, team_uuid) => format!("EVENT TEAM_CREATED \"{}\" \"{}\"\r\n", user_uuid, team_uuid),
+        EventType::UserLoggedIn(user_uuid, username) => format!(
+            "EVENT USER_LOGGED_IN \"{}\" \"{}\"\r\n",
+            user_uuid, username
+        ),
+        EventType::UserLoggedOut(user_uuid, username) => format!(
+            "EVENT USER_LOGGED_OUT \"{}\" \"{}\"\r\n",
+            user_uuid, username
+        ),
+        EventType::TeamCreated(team_uuid, name, description, creator_uuid) => format!(
+            "EVENT TEAM_CREATED \"{}\" \"{}\" \"{}\" \"{}\"\r\n",
+            team_uuid, name, description, creator_uuid
+        ),
+        EventType::ChannelCreated(channel_uuid, name, description, team_uuid) => format!(
+            "EVENT CHANNEL_CREATED \"{}\" \"{}\" \"{}\" \"{}\"\r\n",
+            channel_uuid, name, description, team_uuid
+        ),
+        EventType::ThreadCreated(thread_uuid, title, message, creator_uuid, channel_uuid) => {
+            format!(
+                "EVENT THREAD_CREATED \"{}\" \"{}\" \"{}\" \"{}\" \"{}\"\r\n",
+                thread_uuid, title, message, creator_uuid, channel_uuid
+            )
+        }
+        EventType::ReplyCreated(comment_uuid, body, creator_uuid, thread_uuid) => format!(
+            "EVENT REPLY_CREATED \"{}\" \"{}\" \"{}\" \"{}\"\r\n",
+            comment_uuid, body, creator_uuid, thread_uuid
+        ),
+        EventType::MessageReceived(sender_uuid, body) => format!(
+            "EVENT MESSAGE_RECEIVED \"{}\" \"{}\"\r\n",
+            sender_uuid, body
+        ),
+        EventType::UserSubscribed(user_uuid, team_uuid) => format!(
+            "EVENT USER_SUBSCRIBED \"{}\" \"{}\"\r\n",
+            user_uuid, team_uuid
+        ),
+        EventType::UserUnsubscribed(user_uuid, team_uuid) => {
+            format!("EVENT TEAM_CREATED \"{}\" \"{}\"\r\n", user_uuid, team_uuid)
+        }
     }
 }
 
@@ -62,7 +106,7 @@ pub struct Client {
     incoming_data_buffer: Vec<u8>,
     pub state: ClientState,
 
-    pub uuid: Option<String>
+    pub uuid: Option<String>,
 }
 
 impl Client {
@@ -71,10 +115,23 @@ impl Client {
         let state = ClientState::None;
 
         match stream.set_nonblocking(true) {
-            Ok(_) => Self { stream, incoming_data_buffer, state, uuid: None },
+            Ok(_) => Self {
+                stream,
+                incoming_data_buffer,
+                state,
+                uuid: None,
+            },
             Err(e) => {
-                println!("Failed to set client socket non blocking: {}", e.to_string());
-                Self {stream, incoming_data_buffer, state, uuid: None }
+                println!(
+                    "Failed to set client socket non blocking: {}",
+                    e.to_string()
+                );
+                Self {
+                    stream,
+                    incoming_data_buffer,
+                    state,
+                    uuid: None,
+                }
             }
         }
     }
@@ -112,7 +169,10 @@ impl Client {
                     continue;
                 }
                 Err(e) => {
-                    println!("An error occured during writing the resposes to tcpsocket: {}", e.to_string());
+                    println!(
+                        "An error occured during writing the resposes to tcpsocket: {}",
+                        e.to_string()
+                    );
                     break;
                 }
             }
@@ -120,9 +180,17 @@ impl Client {
     }
 
     pub fn get_pending_command(&mut self) -> Option<String> {
-        if let Some(pos) = self.incoming_data_buffer.windows(2).position(|w| w == b"\r\n") {
+        if let Some(pos) = self
+            .incoming_data_buffer
+            .windows(2)
+            .position(|w| w == b"\r\n")
+        {
             let line: Vec<u8> = self.incoming_data_buffer.drain(..pos + 2).collect();
-            Some(String::from_utf8_lossy(&line).parse().unwrap_or("FAILED TO EXTRACT ".to_string()))
+            Some(
+                String::from_utf8_lossy(&line)
+                    .parse()
+                    .unwrap_or("FAILED TO EXTRACT ".to_string()),
+            )
         } else {
             None
         }
