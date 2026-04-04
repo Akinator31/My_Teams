@@ -1,4 +1,5 @@
 use crate::clients::client::ClientState::ToBeDisconnected;
+use crate::clients::context::Context;
 use crate::errors::myteams_errors::MyTeamsServerError;
 use crate::server::data::user::User;
 use crate::server::data::Message;
@@ -29,6 +30,7 @@ pub enum SuccessCode {
     MessageListFollows(Message),
     UsersListFollows(User, bool),
     UserInfoFollows(User, bool),
+    ContextSet(Context),
 }
 
 #[derive(Debug, PartialEq, Eq, Hash)]
@@ -86,6 +88,9 @@ impl From<SuccessCode> for String {
                     "213 \"{}\" \"{}\" \"{}\"\r\n",
                     user.uuid, user.user_name, is_logged_in
                 )
+            }
+            SuccessCode::ContextSet(context) => {
+                format!("250 Context set to {}\r\n", context)
             }
         }
     }
@@ -150,6 +155,7 @@ pub struct Client {
     pub state: ClientState,
 
     pub uuid: Option<String>,
+    pub context: Context,
 }
 
 impl Client {
@@ -163,6 +169,7 @@ impl Client {
                 incoming_data_buffer,
                 state,
                 uuid: None,
+                context: Context::None,
             },
             Err(e) => {
                 println!(
@@ -174,6 +181,7 @@ impl Client {
                     incoming_data_buffer,
                     state,
                     uuid: None,
+                    context: Context::None,
                 }
             }
         }
