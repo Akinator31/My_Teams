@@ -2,6 +2,7 @@ use crate::server::commands::login::login;
 use crate::server::commands::logout::logout;
 use crate::server::commands::messages::messages;
 use crate::server::commands::send::send;
+use crate::server::commands::set_context::set_context;
 use crate::server::commands::user::user;
 use crate::server::commands::users::users;
 use crate::server::server::MyTeamsServer;
@@ -21,6 +22,7 @@ pub fn commands() -> &'static CommandType {
         cmd.insert("MESSAGES".to_string(), messages);
         cmd.insert("USERS".to_string(), users);
         cmd.insert("USER".to_string(), user);
+        cmd.insert("USE".to_string(), set_context);
 
         cmd
     })
