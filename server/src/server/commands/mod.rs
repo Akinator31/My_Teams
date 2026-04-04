@@ -5,6 +5,7 @@ pub mod login;
 pub mod logout;
 pub mod messages;
 pub mod send;
+pub mod set_context;
 pub mod user;
 mod users;
 
@@ -47,7 +48,7 @@ impl FromArgs for (String, String) {
 }
 
 impl FromArgs for (String, String, String) {
-    const COUNT: usize = 2;
+    const COUNT: usize = 3;
     fn from_args(mut args: Vec<String>) -> Option<Self> {
         if args.len() == Self::COUNT {
             Some((args.remove(0), args.remove(0), args.remove(0)))
