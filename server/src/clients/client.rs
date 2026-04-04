@@ -1,5 +1,6 @@
 use crate::clients::client::ClientState::ToBeDisconnected;
 use crate::errors::myteams_errors::MyTeamsServerError;
+use crate::server::data::user::User;
 use crate::server::data::Message;
 use std::fmt::{Display, Formatter};
 use std::io::ErrorKind::WouldBlock;
@@ -16,6 +17,7 @@ pub enum ClientState {
 pub enum OkeyResponse {
     Connected,
     EndOfMessages,
+    EndOfUsers,
 }
 
 #[derive(Debug, PartialEq, Eq, Hash)]
@@ -25,6 +27,7 @@ pub enum SuccessCode {
     UserLoggedOut,
     MessageSent,
     MessageListFollows(Message),
+    UsersListFollows(User, bool),
 }
 
 #[derive(Debug, PartialEq, Eq, Hash)]
@@ -51,6 +54,7 @@ impl Display for OkeyResponse {
         match self {
             OkeyResponse::Connected => write!(f, "Connected to MyTeams server"),
             OkeyResponse::EndOfMessages => write!(f, "End of messages"),
+            OkeyResponse::EndOfUsers => write!(f, "End of users list"),
         }
     }
 }
@@ -68,6 +72,12 @@ impl From<SuccessCode> for String {
                 format!(
                     "221 \"{}\" \"{}\" \"{}\"\r\n",
                     message.sender, message.timestamp, message.body
+                )
+            }
+            SuccessCode::UsersListFollows(user, is_logged_in) => {
+                format!(
+                    "212 \"{}\" \"{}\" \"{}\"\r\n",
+                    user.uuid, user.user_name, is_logged_in
                 )
             }
         }
