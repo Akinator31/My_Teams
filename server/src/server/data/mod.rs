@@ -1,9 +1,13 @@
+use crate::server::data::team::Team;
 use crate::server::data::user::User;
 use crate::utils::get_timestamp;
 use std::collections::hash_map::Entry;
 use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
 
+pub mod channel;
+pub mod team;
+pub mod thread;
 pub mod user;
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
@@ -13,10 +17,10 @@ pub struct Message {
     pub body: String,
 }
 
-#[derive(Clone)]
 pub struct MyTeamsServerData {
     pub users: Vec<User>,
     direct_messages: HashMap<UserPair, Vec<Message>>,
+    teams: Vec<Team>,
 }
 
 #[derive(Clone, Eq)]
@@ -45,6 +49,7 @@ impl MyTeamsServerData {
         MyTeamsServerData {
             users: Vec::new(),
             direct_messages: HashMap::new(),
+            teams: Vec::new(),
         }
     }
 
@@ -105,6 +110,42 @@ impl MyTeamsServerData {
         for (user_pair, messages) in &self.direct_messages {
             if *user_pair == pair {
                 return Some(messages.clone());
+            }
+        }
+        None
+    }
+
+    pub fn find_teams(&mut self, team_uuid: String) -> Option<usize> {
+        for (team_index, team) in self.teams.iter().enumerate() {
+            if team.uuid == team_uuid {
+                return Some(team_index);
+            }
+        }
+        None
+    }
+
+    pub fn find_channels(&mut self, team_index: usize, channel_uuid: String) -> Option<usize> {
+        for (channel_index, channel) in self.teams[team_index].channels.iter().enumerate() {
+            if channel.uuid == channel_uuid {
+                return Some(channel_index);
+            }
+        }
+        None
+    }
+
+    pub fn find_threads(
+        &mut self,
+        team_index: usize,
+        channel_index: usize,
+        thread_uuid: String,
+    ) -> Option<usize> {
+        for (thread_index, thread) in self.teams[team_index].channels[channel_index]
+            .threads
+            .iter()
+            .enumerate()
+        {
+            if thread.uuid == thread_uuid {
+                return Some(thread_index);
             }
         }
         None
