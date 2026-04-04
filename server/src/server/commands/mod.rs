@@ -5,6 +5,7 @@ pub mod login;
 pub mod logout;
 pub mod messages;
 pub mod send;
+pub mod user;
 mod users;
 
 trait FromArgs: Sized {
