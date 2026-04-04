@@ -5,8 +5,11 @@ pub fn get_uuid() -> String {
     #[cfg(target_os = "linux")]
     {
         let mut uuid = String::new();
-        let mut uuid_file = File::open("/proc/sys/kernel/random/uuid").unwrap();
-        uuid_file.read_to_string(&mut uuid).expect("/proc/sys/kernel/random/uuid doesn't exist!");
+        let mut uuid_file = File::open("/proc/sys/kernel/random/uuid")
+            .expect("/proc/sys/kernel/random/uuid doesn't exist!");
+        uuid_file
+            .read_to_string(&mut uuid)
+            .expect("An error occured while generating uuid!");
         uuid.trim().to_string()
     }
 
