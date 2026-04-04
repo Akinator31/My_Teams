@@ -28,6 +28,7 @@ pub enum SuccessCode {
     MessageSent,
     MessageListFollows(Message),
     UsersListFollows(User, bool),
+    UserInfoFollows(User, bool),
 }
 
 #[derive(Debug, PartialEq, Eq, Hash)]
@@ -77,6 +78,12 @@ impl From<SuccessCode> for String {
             SuccessCode::UsersListFollows(user, is_logged_in) => {
                 format!(
                     "212 \"{}\" \"{}\" \"{}\"\r\n",
+                    user.uuid, user.user_name, is_logged_in
+                )
+            }
+            SuccessCode::UserInfoFollows(user, is_logged_in) => {
+                format!(
+                    "213 \"{}\" \"{}\" \"{}\"\r\n",
                     user.uuid, user.user_name, is_logged_in
                 )
             }
