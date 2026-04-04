@@ -15,7 +15,7 @@ pub struct Message {
 
 #[derive(Clone)]
 pub struct MyTeamsServerData {
-    users: Vec<User>,
+    pub users: Vec<User>,
     direct_messages: HashMap<UserPair, Vec<Message>>,
 }
 
