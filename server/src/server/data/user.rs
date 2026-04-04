@@ -1,6 +1,6 @@
 use crate::utils::uuid::get_uuid;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Eq, PartialEq, Hash)]
 pub struct User {
     pub user_name: String,
     pub uuid: String,

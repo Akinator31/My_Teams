@@ -5,6 +5,7 @@ pub mod login;
 pub mod logout;
 pub mod messages;
 pub mod send;
+mod users;
 
 trait FromArgs: Sized {
     const COUNT: usize;
