@@ -1,6 +1,7 @@
 use crate::utils::parsing::parse_quoted_args;
 
 pub mod commands;
+pub mod create;
 pub mod login;
 pub mod logout;
 pub mod messages;
@@ -9,7 +10,7 @@ pub mod set_context;
 pub mod user;
 mod users;
 
-trait FromArgs: Sized {
+pub trait FromArgs: Sized {
     const COUNT: usize;
     fn from_args(args: Vec<String>) -> Option<Self>;
 }

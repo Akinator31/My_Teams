@@ -314,62 +314,68 @@ Table of Contents
 5.5 Contextual Commands (/create, /list, /info)
 
    These commands behave differently depending on the active context
-   (see Section 4).
+   (see Section 4). The context is set using the SET command and
+   persists between command executions. By default, no context is
+   set, so you need to define one using the /set command.
+   Once the context is set, the client no longer needs to specify it
+   when using context-related commands such as /create, /list, or
+   /info. The context is stored on the server and is updated when
+   the client uses the /use command.
 
    Syntax:
 
-      CREATE CONTEXT ARGS CRLF
-      LIST   CONTEXT      CRLF
-      INFO   CONTEXT      CRLF
+      CREATE ARGS CRLF
+      LIST        CRLF
+      INFO        CRLF
 
    Where CONTEXT is one of: NONE | TEAM | CHANNEL | THREAD
 
    CREATE
    ------
-   Context NONE    : CREATE NONE "team_name" "team_description" CRLF
+   Context NONE    : CREATE "team_name" "team_description" CRLF
                      -> Creates a new team.
 
-   Context TEAM    : CREATE TEAM "channel_name" "channel_description" CRLF
+   Context TEAM    : CREATE "channel_name" "channel_description" CRLF
                      -> Creates a new channel in the current team.
                      Requires: user must be subscribed to the team.
 
-   Context CHANNEL : CREATE CHANNEL "thread_title" "thread_message" CRLF
+   Context CHANNEL : CREATE "thread_title" "thread_message" CRLF
                      -> Creates a new thread in the current channel.
                      Requires: user must be subscribed to the team.
 
-   Context THREAD  : CREATE THREAD "comment_body" CRLF
+   Context THREAD  : CREATE "comment_body" CRLF
                      -> Creates a reply in the current thread.
                      Requires: user must be subscribed to the team.
 
    LIST
    ----
-   Context NONE    : LIST NONE CRLF
+   Context NONE    : LIST CRLF
                      -> Lists all existing teams.
 
-   Context TEAM    : LIST TEAM CRLF
+   Context TEAM    : LIST CRLF
                      -> Lists all channels in the current team.
                      Requires: user must be subscribed to the team.
 
-   Context CHANNEL : LIST CHANNEL CRLF
+   Context CHANNEL : LIST CRLF
                      -> Lists all threads in the current channel.
                      Requires: user must be subscribed to the team.
 
-   Context THREAD  : LIST THREAD CRLF
+   Context THREAD  : LIST CRLF
                      -> Lists all replies in the current thread.
                      Requires: user must be subscribed to the team.
 
    INFO
    ----
-   Context NONE    : INFO NONE CRLF
+   Context NONE    : INFO CRLF
                      -> Displays the currently logged-in user's details.
 
-   Context TEAM    : INFO TEAM CRLF
+   Context TEAM    : INFO CRLF
                      -> Displays details of the currently selected team.
 
-   Context CHANNEL : INFO CHANNEL CRLF
+   Context CHANNEL : INFO CRLF
                      -> Displays details of the currently selected channel.
 
-   Context THREAD  : INFO THREAD CRLF
+   Context THREAD  : INFO CRLF
                      -> Displays details of the currently selected thread.
 
 5.6 Miscellaneous Commands
@@ -484,10 +490,6 @@ Table of Contents
    411 No context
        A contextual command was issued but no context is set.
 
-   412 Wrong context
-       The contextual command does not match the current context
-       (e.g., CREATE THREAD issued in TEAM context).
-
 6.4 Server Error Codes (5xx)
 
    500 Internal server error
@@ -520,14 +522,14 @@ Table of Contents
    7.3 Logout
 
       -> LOGOUT CRLF
-      <- 211 SP User logged out. CRLF
+      <- 211 SP User logged out CRLF
 
    7.4 List all users
 
       -> USERS CRLF
       <- 212 SP <user_uuid> <username> <is_logged> CRLF
          [one line per user]
-      <- 200 SP End of users list. CRLF
+      <- 200 SP End of users list CRLF
 
    7.5 Get user info
 
@@ -535,95 +537,95 @@ Table of Contents
       <- 213 SP <uuid> <username> <is_logged> CRLF
 
       Error:
-      <- 404 SP User not found. CRLF
+      <- 404 SP User not found CRLF
 
    7.6 Send a direct message
 
       -> SEND "receiver_uuid" "Hello!" CRLF
-      <- 220 SP Message sent. CRLF
+      <- 220 SP Message sent CRLF
 
       Errors:
       <- 404 SP User not found. CRLF
-      <- 401 SP Unauthorized. CRLF
+      <- 401 SP Unauthorized CRLF
 
    7.7 List direct messages
 
       -> MESSAGES "user_uuid" CRLF
       <- 221 SP <sender_uuid> <timestamp> <body> CRLF
          [one line per message]
-      <- 200 SP End of messages. CRLF
+      <- 200 SP End of messages CRLF
       
       Errors:
-      <- 404 SP User not found. CRLF
-      <- 401 SP Unauthorized. CRLF
+      <- 404 SP User not found CRLF
+      <- 401 SP Unauthorized CRLF
 
    7.8 Subscribe to a team
 
       -> SUBSCRIBE "team_uuid" CRLF
-      <- 200 SP Subscribed to team. CRLF
+      <- 200 SP Subscribed to team CRLF
 
       Error:
-      <- 404 SP Team not found. CRLF
+      <- 404 SP Team not found CRLF
 
    7.9 List subscribed teams
 
       -> SUBSCRIBED CRLF
       <- 231 SP <team_uuid> CRLF
          [one line per team]
-      <- 200 SP End of subscribed teams. CRLF
+      <- 200 SP End of subscribed teams CRLF
 
    7.10 List users subscribed to a team
 
       -> SUBSCRIBED "team_uuid" CRLF
       <- 232 SP <user_uuid> CRLF
          [one line per user]
-      <- 200 SP End of subscribed users. CRLF
+      <- 200 SP End of subscribed users CRLF
 
    7.11 Unsubscribe from a team
 
       -> UNSUBSCRIBE "team_uuid" CRLF
-      <- 200 SP Unsubscribed from team. CRLF
+      <- 200 SP Unsubscribed from team CRLF
 
    7.12 Set context
 
       -> USE CRLF
-      <- 250 SP Context set to NONE. CRLF
+      <- 250 SP Context set to NONE CRLF
 
       -> USE "team_uuid" CRLF
-      <- 250 SP Context set to TEAM. CRLF
+      <- 250 SP Context set to TEAM CRLF
 
       -> USE "team_uuid" "channel_uuid" CRLF
-      <- 250 SP Context set to CHANNEL. CRLF
+      <- 250 SP Context set to CHANNEL CRLF
 
       -> USE "team_uuid" "channel_uuid" "thread_uuid" CRLF
-      <- 250 SP Context set to THREAD. CRLF
+      <- 250 SP Context set to THREAD CRLF
 
       Error:
-      <- 404 SP Resource not found. CRLF
+      <- 404 SP Resource not found CRLF
 
    7.13 Create (contextual)
 
       Context NONE - create a team:
-      -> CREATE NONE "my_team" "a great team" CRLF
-      <- 201 SP Team created. UUID: <uuid> CRLF
+      -> CREATE <team_name> <team_description> CRLF
+      <- 201 SP Created CRLF
 
       Context TEAM - create a channel:
-      -> CREATE TEAM "general" "general discussion" CRLF
-      <- 201 SP Channel created. UUID: <uuid> CRLF
+      -> CREATE <channel_name> <channel_description> CRLF
+      <- 201 SP Created CRLF
 
       Context CHANNEL - create a thread:
-      -> CREATE CHANNEL "Bug report" "Something is wrong" CRLF
-      <- 201 SP Thread created. UUID: <uuid> CRLF
+      -> CREATE <thread_title> <thread_message> CRLF
+      <- 201 SP Created CRLF
 
       Context THREAD - create a reply:
-      -> CREATE THREAD "I agree with this." CRLF
-      <- 201 SP Comment created. UUID: <uuid> CRLF
+      -> CREATE <comment_body> CRLF
+      <- 201 SP Created CRLF
 
       Errors:
-      <- 400 SP Bad request (bad args, length exceeded, etc.) CRLF
-      <- 401 SP Unauthorized. CRLF
-      <- 403 SP Forbidden (not subscribed to team). CRLF
-      <- 411 SP No context set. CRLF
+      <- 400 SP Bad request CRLF
+      <- 401 SP Unauthorized CRLF
+      <- 403 SP Forbidden CRLF
+      <- 411 SP No context set CRLF
 
    7.14 List (contextual)
 
@@ -631,25 +633,25 @@ Table of Contents
       -> LIST NONE CRLF
       <- 230 SP <team_uuid> <name> <description> CRLF
          [one line per team]
-      <- 200 SP End of teams list. CRLF
+      <- 200 SP End of teams list CRLF
 
       Context TEAM:
       -> LIST TEAM CRLF
       <- 233 SP <channel_uuid> <name> <description> CRLF
          [one line per channel]
-      <- 200 SP End of channels list. CRLF
+      <- 200 SP End of channels list CRLF
 
       Context CHANNEL:
       -> LIST CHANNEL CRLF
       <- 234 SP <thread_uuid> <title> <creator_uuid> <timestamp> CRLF
          [one line per thread]
-      <- 200 SP End of threads list. CRLF
+      <- 200 SP End of threads list CRLF
 
       Context THREAD:
       -> LIST THREAD CRLF
       <- 235 SP <comment_uuid> <body> <creator_uuid> <timestamp> CRLF
          [one line per comment]
-      <- 200 SP End of replies list. CRLF
+      <- 200 SP End of replies list CRLF
 
    7.15 Info (contextual)
 
@@ -673,7 +675,7 @@ Table of Contents
 
       -> HELP CRLF
       <- 214 SP Available commands: LOGIN LOGOUT USERS USER SEND ...
-      <- 200 SP End of help. CRLF
+      <- 200 SP End of help CRLF
 
 
 ------------------------------------------------------------------------
@@ -768,7 +770,7 @@ Numeric Order List of Reply Codes
    101  Already logged in (informational)
 
    200  OK - General success
-   201  Created - Resource successfully created
+   201  Created
    210  User logged in
    211  User logged out
    212  Users list follows

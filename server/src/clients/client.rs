@@ -1,8 +1,13 @@
 use crate::clients::client::ClientState::ToBeDisconnected;
 use crate::clients::context::Context;
 use crate::errors::myteams_errors::MyTeamsServerError;
-use crate::server::data::user::User;
-use crate::server::data::Message;
+use crate::server::data::channel::ChannelCreatedEvent;
+use crate::server::data::team::TeamCreatedEvent;
+use crate::server::data::thread::{ReplyCreatedEvent, ThreadCreatedEvent};
+use crate::server::data::user::{
+    User, UserLoggedInEvent, UserLoggedOutEvent, UserSubscribedEvent, UserUnsubscribedEvent,
+};
+use crate::server::data::{Message, MessageCreatedEvent};
 use std::fmt::{Display, Formatter};
 use std::io::ErrorKind::WouldBlock;
 use std::io::{Read, Write};
@@ -24,6 +29,7 @@ pub enum OkeyResponse {
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub enum SuccessCode {
     Okay(OkeyResponse),
+    Created,
     UserLoggedIn(String),
     UserLoggedOut,
     MessageSent,
@@ -38,18 +44,19 @@ pub enum ErrorCode {
     BadRequest,
     NotFound,
     Unauthorized,
+    NoContextSet,
 }
 
 pub enum EventType {
-    UserLoggedIn(String, String),
-    UserLoggedOut(String, String),
-    TeamCreated(String, String, String, String),
-    ChannelCreated(String, String, String, String),
-    ThreadCreated(String, String, String, String, String),
-    ReplyCreated(String, String, String, String),
-    MessageReceived(String, String),
-    UserSubscribed(String, String),
-    UserUnsubscribed(String, String),
+    UserLoggedIn(UserLoggedInEvent),
+    UserLoggedOut(UserLoggedOutEvent),
+    TeamCreated(TeamCreatedEvent),
+    ChannelCreated(ChannelCreatedEvent),
+    ThreadCreated(ThreadCreatedEvent),
+    ReplyCreated(ReplyCreatedEvent),
+    MessageReceived(MessageCreatedEvent),
+    UserSubscribed(UserSubscribedEvent),
+    UserUnsubscribed(UserUnsubscribedEvent),
 }
 
 impl Display for OkeyResponse {
@@ -66,6 +73,7 @@ impl From<SuccessCode> for String {
     fn from(value: SuccessCode) -> Self {
         match value {
             SuccessCode::Okay(message) => format!("200 {}\r\n", message),
+            SuccessCode::Created => "201 Created\r\n".to_string(),
             SuccessCode::UserLoggedIn(username) => {
                 format!("210 User logged in. UUID: {}\r\n", username)
             }
@@ -102,48 +110,52 @@ impl From<ErrorCode> for String {
             ErrorCode::BadRequest => "400 Bad request\r\n".to_string(),
             ErrorCode::NotFound => "404 Not found\r\n".to_string(),
             ErrorCode::Unauthorized => "403 Forbidden (insufficient permissions)\r\n".to_string(),
+            ErrorCode::NoContextSet => "411 No context set\r\n".to_string(),
         }
     }
 }
 
 pub fn format_event(event: EventType) -> String {
     match event {
-        EventType::UserLoggedIn(user_uuid, username) => format!(
+        EventType::UserLoggedIn(event) => format!(
             "EVENT USER_LOGGED_IN \"{}\" \"{}\"\r\n",
-            user_uuid, username
+            event.user_uuid, event.username
         ),
-        EventType::UserLoggedOut(user_uuid, username) => format!(
+        EventType::UserLoggedOut(event) => format!(
             "EVENT USER_LOGGED_OUT \"{}\" \"{}\"\r\n",
-            user_uuid, username
+            event.user_uuid, event.username
         ),
-        EventType::TeamCreated(team_uuid, name, description, creator_uuid) => format!(
+        EventType::TeamCreated(event) => format!(
             "EVENT TEAM_CREATED \"{}\" \"{}\" \"{}\" \"{}\"\r\n",
-            team_uuid, name, description, creator_uuid
+            event.team_uuid, event.name, event.description, event.creator_uuid
         ),
-        EventType::ChannelCreated(channel_uuid, name, description, team_uuid) => format!(
+        EventType::ChannelCreated(event) => format!(
             "EVENT CHANNEL_CREATED \"{}\" \"{}\" \"{}\" \"{}\"\r\n",
-            channel_uuid, name, description, team_uuid
+            event.channel_uuid, event.name, event.description, event.team_uuid
         ),
-        EventType::ThreadCreated(thread_uuid, title, message, creator_uuid, channel_uuid) => {
+        EventType::ThreadCreated(event) => {
             format!(
                 "EVENT THREAD_CREATED \"{}\" \"{}\" \"{}\" \"{}\" \"{}\"\r\n",
-                thread_uuid, title, message, creator_uuid, channel_uuid
+                event.thread_uuid, event.title, event.body, event.creator_uuid, event.channel_uuid
             )
         }
-        EventType::ReplyCreated(comment_uuid, body, creator_uuid, thread_uuid) => format!(
+        EventType::ReplyCreated(event) => format!(
             "EVENT REPLY_CREATED \"{}\" \"{}\" \"{}\" \"{}\"\r\n",
-            comment_uuid, body, creator_uuid, thread_uuid
+            event.comment_uuid, event.body, event.creator_uuid, event.thread_uuid
         ),
-        EventType::MessageReceived(sender_uuid, body) => format!(
+        EventType::MessageReceived(event) => format!(
             "EVENT MESSAGE_RECEIVED \"{}\" \"{}\"\r\n",
-            sender_uuid, body
+            event.sender_uuid, event.body
         ),
-        EventType::UserSubscribed(user_uuid, team_uuid) => format!(
+        EventType::UserSubscribed(event) => format!(
             "EVENT USER_SUBSCRIBED \"{}\" \"{}\"\r\n",
-            user_uuid, team_uuid
+            event.user_uuid, event.team_uuid
         ),
-        EventType::UserUnsubscribed(user_uuid, team_uuid) => {
-            format!("EVENT TEAM_CREATED \"{}\" \"{}\"\r\n", user_uuid, team_uuid)
+        EventType::UserUnsubscribed(event) => {
+            format!(
+                "EVENT TEAM_CREATED \"{}\" \"{}\"\r\n",
+                event.user_uuid, event.team_uuid
+            )
         }
     }
 }
@@ -155,7 +167,7 @@ pub struct Client {
     pub state: ClientState,
 
     pub uuid: Option<String>,
-    pub context: Context,
+    pub context: Option<Context>,
 }
 
 impl Client {
@@ -169,7 +181,7 @@ impl Client {
                 incoming_data_buffer,
                 state,
                 uuid: None,
-                context: Context::None,
+                context: None,
             },
             Err(e) => {
                 println!(
@@ -181,7 +193,7 @@ impl Client {
                     incoming_data_buffer,
                     state,
                     uuid: None,
-                    context: Context::None,
+                    context: None,
                 }
             }
         }

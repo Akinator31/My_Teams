@@ -5,7 +5,7 @@ use crate::server::server::MyTeamsServer;
 use crate::utils::parsing::parse_quoted_args;
 
 fn set_context_to_none(server: &mut MyTeamsServer, client_index: usize) -> bool {
-    server.client_manager.clients[client_index].context = Context::None;
+    server.client_manager.clients[client_index].context = Some(Context::None);
     server.client_manager.clients[client_index].write(ContextSet(Context::None));
 
     true
@@ -15,7 +15,7 @@ fn set_context_to_team(server: &mut MyTeamsServer, client_index: usize, team_uui
     if let Some(_) = server.data.find_teams(team_uuid.clone()) {
         let context = Context::Team(ContextTeam { team: team_uuid });
 
-        server.client_manager.clients[client_index].context = context.clone();
+        server.client_manager.clients[client_index].context = Some(context.clone());
         server.client_manager.clients[client_index].write(ContextSet(context));
 
         return true;
@@ -42,7 +42,7 @@ fn set_context_to_channel(
             channel: channel_uuid,
         });
 
-        server.client_manager.clients[client_index].context = context.clone();
+        server.client_manager.clients[client_index].context = Some(context.clone());
         server.client_manager.clients[client_index].write(ContextSet(context));
         return true;
     }
@@ -78,7 +78,7 @@ fn set_context_to_thread(
             thread: thread_uuid,
         });
 
-        server.client_manager.clients[client_index].context = context.clone();
+        server.client_manager.clients[client_index].context = Some(context.clone());
         server.client_manager.clients[client_index].write(ContextSet(context));
         return true;
     }
