@@ -23,7 +23,7 @@ pub fn login(server: &mut MyTeamsServer, client_index: usize, command_args: Stri
 
             client.write(UserLoggedIn(new_user.uuid.clone()));
         } else {
-            if let Some(user) = server.data.get_user(&user_name) {
+            if let Some(user) = server.data.get_user_by_name(&user_name) {
                 client.uuid = Some(user.uuid.clone());
 
                 libs::ServerLog::server_event_user_logged_in(user.uuid.clone());

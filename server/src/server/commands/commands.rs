@@ -1,3 +1,4 @@
+use crate::server::commands::create::create;
 use crate::server::commands::login::login;
 use crate::server::commands::logout::logout;
 use crate::server::commands::messages::messages;
@@ -23,6 +24,7 @@ pub fn commands() -> &'static CommandType {
         cmd.insert("USERS".to_string(), users);
         cmd.insert("USER".to_string(), user);
         cmd.insert("USE".to_string(), set_context);
+        cmd.insert("CREATE".to_string(), create);
 
         cmd
     })

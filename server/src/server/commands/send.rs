@@ -35,8 +35,9 @@ pub fn send(server: &mut MyTeamsServer, client_index: usize, command_args: Strin
         .client_manager
         .is_client_logged_in(receiver_uuid.clone())
     {
-        server.client_manager.clients[receiver_index]
-            .send_event(MessageReceived(client_uuid.clone(), message.clone()));
+        server.client_manager.clients[receiver_index].send_event(MessageReceived(
+            (client_uuid.clone(), message.clone()).into(),
+        ));
     }
 
     server
