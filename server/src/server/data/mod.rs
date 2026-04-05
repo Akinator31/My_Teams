@@ -1,4 +1,6 @@
+use crate::server::data::channel::Channel;
 use crate::server::data::team::Team;
+use crate::server::data::thread::{Reply, Thread};
 use crate::server::data::user::User;
 use crate::utils::get_timestamp;
 use std::collections::hash_map::Entry;
@@ -17,6 +19,11 @@ pub struct Message {
     pub body: String,
 }
 
+pub struct MessageCreatedEvent {
+    pub sender_uuid: String,
+    pub body: String,
+}
+
 pub struct MyTeamsServerData {
     pub users: Vec<User>,
     direct_messages: HashMap<UserPair, Vec<Message>>,
@@ -29,6 +36,15 @@ pub struct UserPair(pub String, pub String);
 impl PartialEq for UserPair {
     fn eq(&self, other: &Self) -> bool {
         (self.0 == other.0 && self.1 == other.1) || (self.0 == other.1 && self.1 == other.0)
+    }
+}
+
+impl From<(String, String)> for MessageCreatedEvent {
+    fn from(value: (String, String)) -> Self {
+        MessageCreatedEvent {
+            sender_uuid: value.0,
+            body: value.1,
+        }
     }
 }
 
@@ -53,9 +69,18 @@ impl MyTeamsServerData {
         }
     }
 
-    pub fn get_user(&mut self, user_name: &String) -> Option<&User> {
+    pub fn get_user_by_name(&mut self, user_name: &String) -> Option<&User> {
         for user in &self.users {
             if user.user_name == user_name.clone() {
+                return Some(user);
+            }
+        }
+        None
+    }
+
+    pub fn get_user_by_uuid(&mut self, user_uuid: &String) -> Option<&User> {
+        for user in &self.users {
+            if user.uuid == user_uuid.clone() {
                 return Some(user);
             }
         }
@@ -149,6 +174,106 @@ impl MyTeamsServerData {
             }
         }
         None
+    }
+
+    pub fn create_team(
+        &mut self,
+        client_uuid: String,
+        team_name: String,
+        team_description: String,
+    ) -> (String, usize) {
+        let new_team = Team::new(team_name, team_description, client_uuid);
+
+        let new_team_uuid = new_team.uuid.clone();
+        let new_team_index = {
+            self.teams.push(new_team);
+            self.teams.len() - 1
+        };
+
+        (new_team_uuid, new_team_index)
+    }
+
+    pub fn create_channel(
+        &mut self,
+        team_uuid: String,
+        channel_name: String,
+        channel_description: String,
+    ) -> Option<(String, usize)> {
+        let new_channel = Channel::new(team_uuid.clone(), channel_name, channel_description);
+
+        let Some(team_index) = self.find_teams(team_uuid) else {
+            return None;
+        };
+
+        let new_channel_uuid = new_channel.uuid.clone();
+        let new_channel_index = {
+            self.teams[team_index].channels.push(new_channel);
+            self.teams[team_index].channels.len() - 1
+        };
+
+        Some((new_channel_uuid, new_channel_index))
+    }
+
+    pub fn create_thread(
+        &mut self,
+        team_uuid: String,
+        user_uuid: String,
+        channel_uuid: String,
+        thread_title: String,
+        thread_body: String,
+    ) -> Option<(String, usize)> {
+        let new_thread = Thread::new(channel_uuid.clone(), user_uuid, thread_title, thread_body);
+
+        let Some(team_index) = self.find_teams(team_uuid) else {
+            return None;
+        };
+        let Some(channel_index) = self.find_channels(team_index, channel_uuid) else {
+            return None;
+        };
+
+        let new_thread_uuid = new_thread.uuid.clone();
+        let new_thread_index = {
+            self.teams[team_index].channels[channel_index]
+                .threads
+                .push(new_thread);
+            self.teams[team_index].channels[channel_index].threads.len() - 1
+        };
+
+        Some((new_thread_uuid, new_thread_index))
+    }
+
+    pub fn create_reply(
+        &mut self,
+        team_uuid: String,
+        user_uuid: String,
+        channel_uuid: String,
+        thread_uuid: String,
+        body: String,
+    ) -> Option<(String, usize)> {
+        let new_reply = Reply::new(thread_uuid.clone(), user_uuid, body);
+
+        let Some(team_index) = self.find_teams(team_uuid) else {
+            return None;
+        };
+        let Some(channel_index) = self.find_channels(team_index, channel_uuid) else {
+            return None;
+        };
+        let Some(thread_index) = self.find_threads(team_index, channel_index, thread_uuid) else {
+            return None;
+        };
+
+        let new_reply_uuid = new_reply.uuid.clone();
+        let new_reply_index = {
+            self.teams[team_index].channels[channel_index].threads[thread_index]
+                .comments
+                .push(new_reply);
+            self.teams[team_index].channels[channel_index].threads[thread_index]
+                .comments
+                .len()
+                - 1
+        };
+
+        Some((new_reply_uuid, new_reply_index))
     }
 }
 
