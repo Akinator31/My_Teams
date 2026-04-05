@@ -314,62 +314,68 @@ Table of Contents
 5.5 Contextual Commands (/create, /list, /info)
 
    These commands behave differently depending on the active context
-   (see Section 4).
+   (see Section 4). The context is set using the SET command and
+   persists between command executions. By default, no context is
+   set, so you need to define one using the /set command.
+   Once the context is set, the client no longer needs to specify it
+   when using context-related commands such as /create, /list, or
+   /info. The context is stored on the server and is updated when
+   the client uses the /use command.
 
    Syntax:
 
-      CREATE CONTEXT ARGS CRLF
-      LIST   CONTEXT      CRLF
-      INFO   CONTEXT      CRLF
+      CREATE ARGS CRLF
+      LIST        CRLF
+      INFO        CRLF
 
    Where CONTEXT is one of: NONE | TEAM | CHANNEL | THREAD
 
    CREATE
    ------
-   Context NONE    : CREATE NONE "team_name" "team_description" CRLF
+   Context NONE    : CREATE "team_name" "team_description" CRLF
                      -> Creates a new team.
 
-   Context TEAM    : CREATE TEAM "channel_name" "channel_description" CRLF
+   Context TEAM    : CREATE "channel_name" "channel_description" CRLF
                      -> Creates a new channel in the current team.
                      Requires: user must be subscribed to the team.
 
-   Context CHANNEL : CREATE CHANNEL "thread_title" "thread_message" CRLF
+   Context CHANNEL : CREATE "thread_title" "thread_message" CRLF
                      -> Creates a new thread in the current channel.
                      Requires: user must be subscribed to the team.
 
-   Context THREAD  : CREATE THREAD "comment_body" CRLF
+   Context THREAD  : CREATE "comment_body" CRLF
                      -> Creates a reply in the current thread.
                      Requires: user must be subscribed to the team.
 
    LIST
    ----
-   Context NONE    : LIST NONE CRLF
+   Context NONE    : LIST CRLF
                      -> Lists all existing teams.
 
-   Context TEAM    : LIST TEAM CRLF
+   Context TEAM    : LIST CRLF
                      -> Lists all channels in the current team.
                      Requires: user must be subscribed to the team.
 
-   Context CHANNEL : LIST CHANNEL CRLF
+   Context CHANNEL : LIST CRLF
                      -> Lists all threads in the current channel.
                      Requires: user must be subscribed to the team.
 
-   Context THREAD  : LIST THREAD CRLF
+   Context THREAD  : LIST CRLF
                      -> Lists all replies in the current thread.
                      Requires: user must be subscribed to the team.
 
    INFO
    ----
-   Context NONE    : INFO NONE CRLF
+   Context NONE    : INFO CRLF
                      -> Displays the currently logged-in user's details.
 
-   Context TEAM    : INFO TEAM CRLF
+   Context TEAM    : INFO CRLF
                      -> Displays details of the currently selected team.
 
-   Context CHANNEL : INFO CHANNEL CRLF
+   Context CHANNEL : INFO CRLF
                      -> Displays details of the currently selected channel.
 
-   Context THREAD  : INFO THREAD CRLF
+   Context THREAD  : INFO CRLF
                      -> Displays details of the currently selected thread.
 
 5.6 Miscellaneous Commands
@@ -483,10 +489,6 @@ Table of Contents
 
    411 No context
        A contextual command was issued but no context is set.
-
-   412 Wrong context
-       The contextual command does not match the current context
-       (e.g., CREATE THREAD issued in TEAM context).
 
 6.4 Server Error Codes (5xx)
 
@@ -604,19 +606,19 @@ Table of Contents
    7.13 Create (contextual)
 
       Context NONE - create a team:
-      -> CREATE NONE "my_team" "a great team" CRLF
+      -> CREATE <team_name> <team_description> CRLF
       <- 201 SP Team created. UUID: <uuid> CRLF
 
       Context TEAM - create a channel:
-      -> CREATE TEAM "general" "general discussion" CRLF
+      -> CREATE <channel_name> <channel_description> CRLF
       <- 201 SP Channel created. UUID: <uuid> CRLF
 
       Context CHANNEL - create a thread:
-      -> CREATE CHANNEL "Bug report" "Something is wrong" CRLF
+      -> CREATE <thread_title> <thread_message> CRLF
       <- 201 SP Thread created. UUID: <uuid> CRLF
 
       Context THREAD - create a reply:
-      -> CREATE THREAD "I agree with this." CRLF
+      -> CREATE <comment_body> CRLF
       <- 201 SP Comment created. UUID: <uuid> CRLF
 
       Errors:
