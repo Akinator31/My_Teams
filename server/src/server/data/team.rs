@@ -1,5 +1,4 @@
 use crate::server::data::channel::Channel;
-use crate::server::data::user::User;
 use crate::utils::uuid::get_uuid;
 
 pub struct Team {
@@ -8,9 +7,10 @@ pub struct Team {
     pub author: String,
     pub description: String,
     pub channels: Vec<Channel>,
-    pub subscribed: Vec<User>,
+    pub subscribed: Vec<String>,
 }
 
+#[derive(Clone, Debug)]
 pub struct TeamCreatedEvent {
     pub team_uuid: String,
     pub name: String,
