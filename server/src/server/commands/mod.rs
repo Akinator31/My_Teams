@@ -2,6 +2,7 @@ use crate::utils::parsing::parse_quoted_args;
 
 pub mod commands;
 pub mod create;
+pub mod info;
 pub mod list;
 pub mod login;
 pub mod logout;
