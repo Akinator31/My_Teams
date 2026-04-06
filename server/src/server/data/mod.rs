@@ -8,6 +8,7 @@ use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
 
 pub mod channel;
+pub mod save;
 pub mod team;
 pub mod thread;
 pub mod user;
