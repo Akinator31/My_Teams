@@ -1,6 +1,7 @@
 use crate::clients::client::ClientState::ToBeDisconnected;
 use crate::clients::context::Context;
 use crate::errors::myteams_errors::MyTeamsServerError;
+use crate::server::commands::info::{ChannelInfo, TeamInfo, ThreadInfo, UserInfo};
 use crate::server::commands::list::{ListChannels, ListReplies, ListTeams, ListThreads};
 use crate::server::data::channel::ChannelCreatedEvent;
 use crate::server::data::team::TeamCreatedEvent;
@@ -41,6 +42,7 @@ pub enum SuccessCode {
     Created,
     UserLoggedIn(String),
     UserLoggedOut,
+    InfoUserFollows(UserInfo),
     MessageSent,
     MessageListFollows(Message),
     TeamsListFollows(ListTeams),
@@ -52,6 +54,9 @@ pub enum SuccessCode {
     SubscribedTeamsListFollows(String),
     SubscribedUsersListFollows(String),
     ContextSet(Context),
+    InfoTeamFollows(TeamInfo),
+    InfoChannelFollows(ChannelInfo),
+    InfoThreadFollows(ThreadInfo),
 }
 
 #[derive(Debug, PartialEq, Eq, Hash)]
@@ -102,6 +107,12 @@ impl From<SuccessCode> for String {
                 format!("210 User logged in. UUID: {}\r\n", username)
             }
             SuccessCode::UserLoggedOut => "211 User logged out\r\n".to_string(),
+            SuccessCode::InfoUserFollows(user) => {
+                format!(
+                    "213 \"{}\" \"{}\" \"{}\"\r\n",
+                    user.uuid, user.username, user.is_logged
+                )
+            }
             SuccessCode::MessageSent => "220 Message sent\r\n".to_string(),
             SuccessCode::MessageListFollows(message) => {
                 format!(
@@ -153,6 +164,28 @@ impl From<SuccessCode> for String {
             }
             SuccessCode::ContextSet(context) => {
                 format!("250 Context set to {}\r\n", context)
+            }
+            SuccessCode::InfoTeamFollows(team) => {
+                format!(
+                    "240 \"{}\" \"{}\" \"{}\" \"{}\"\r\n",
+                    team.uuid, team.name, team.description, team.creator_uuid
+                )
+            }
+            SuccessCode::InfoChannelFollows(channel) => {
+                format!(
+                    "241 \"{}\" \"{}\" \"{}\" \"{}\"\r\n",
+                    channel.uuid, channel.name, channel.description, channel.team_uuid
+                )
+            }
+            SuccessCode::InfoThreadFollows(thread) => {
+                format!(
+                    "242 \"{}\" \"{}\" \"{}\" \"{}\" \"{}\"\r\n",
+                    thread.uuid,
+                    thread.title,
+                    thread.message,
+                    thread.creator_uuid,
+                    thread.timestamp
+                )
             }
         }
     }
