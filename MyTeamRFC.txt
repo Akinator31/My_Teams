@@ -581,6 +581,9 @@ Table of Contents
          [one line per user]
       <- 200 SP End of subscribed users CRLF
 
+      Error:
+      <- 404 SP Team not found CRLF
+
    7.11 Unsubscribe from a team
 
       -> UNSUBSCRIBE "team_uuid" CRLF
