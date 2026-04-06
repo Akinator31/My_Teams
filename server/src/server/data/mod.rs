@@ -19,6 +19,7 @@ pub struct Message {
     pub body: String,
 }
 
+#[derive(Clone, Debug)]
 pub struct MessageCreatedEvent {
     pub sender_uuid: String,
     pub body: String,
@@ -27,7 +28,7 @@ pub struct MessageCreatedEvent {
 pub struct MyTeamsServerData {
     pub users: Vec<User>,
     direct_messages: HashMap<UserPair, Vec<Message>>,
-    teams: Vec<Team>,
+    pub teams: Vec<Team>,
 }
 
 #[derive(Clone, Eq)]
@@ -274,6 +275,16 @@ impl MyTeamsServerData {
         };
 
         Some((new_reply_uuid, new_reply_index))
+    }
+
+    pub fn subscribe_to_team(&mut self, team_uuid: String, user_uuid: String) -> bool {
+        let Some(team_index) = self.find_teams(team_uuid) else {
+            return false;
+        };
+
+        self.teams[team_index].subscribed.push(user_uuid);
+
+        true
     }
 }
 

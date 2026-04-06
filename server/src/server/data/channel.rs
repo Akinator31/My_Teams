@@ -9,6 +9,7 @@ pub struct Channel {
     pub threads: Vec<Thread>,
 }
 
+#[derive(Clone, Debug)]
 pub struct ChannelCreatedEvent {
     pub channel_uuid: String,
     pub name: String,

@@ -24,6 +24,7 @@ pub enum OkeyResponse {
     Connected,
     EndOfMessages,
     EndOfUsers,
+    SubscribedToTeam,
 }
 
 #[derive(Debug, PartialEq, Eq, Hash)]
@@ -47,6 +48,7 @@ pub enum ErrorCode {
     NoContextSet,
 }
 
+#[derive(Clone, Debug)]
 pub enum EventType {
     UserLoggedIn(UserLoggedInEvent),
     UserLoggedOut(UserLoggedOutEvent),
@@ -65,6 +67,7 @@ impl Display for OkeyResponse {
             OkeyResponse::Connected => write!(f, "Connected to MyTeams server"),
             OkeyResponse::EndOfMessages => write!(f, "End of messages"),
             OkeyResponse::EndOfUsers => write!(f, "End of users list"),
+            OkeyResponse::SubscribedToTeam => write!(f, "Subscribed to a team"),
         }
     }
 }
@@ -157,6 +160,15 @@ pub fn format_event(event: EventType) -> String {
                 event.user_uuid, event.team_uuid
             )
         }
+    }
+}
+
+impl EventType {
+    pub fn is_global(&self) -> bool {
+        matches!(
+            self,
+            EventType::UserLoggedIn(_) | EventType::UserLoggedOut(_) | EventType::TeamCreated(_)
+        )
     }
 }
 

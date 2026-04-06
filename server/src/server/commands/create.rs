@@ -23,15 +23,18 @@ fn create_team(
     );
 
     server.client_manager.clients[client_index].write(Created);
-    server.client_manager.clients[client_index].send_event(EventType::TeamCreated(
-        (
-            team.0.clone(),
-            team_name.clone(),
-            team_description,
-            client_uuid.clone(),
-        )
-            .into(),
-    ));
+    server.send_global_event(
+        EventType::TeamCreated(
+            (
+                team.0.clone(),
+                team_name.clone(),
+                team_description,
+                client_uuid.clone(),
+            )
+                .into(),
+        ),
+        None,
+    );
 
     libs::ServerLog::server_event_team_created(team.0, team_name, client_uuid);
 }
@@ -53,15 +56,18 @@ fn create_channel(
     };
 
     server.client_manager.clients[client_index].write(Created);
-    server.client_manager.clients[client_index].send_event(EventType::ChannelCreated(
-        (
-            channel.0.clone(),
-            channel_name.clone(),
-            channel_description,
-            context.team.clone(),
-        )
-            .into(),
-    ));
+    server.send_global_event(
+        EventType::ChannelCreated(
+            (
+                channel.0.clone(),
+                channel_name.clone(),
+                channel_description,
+                context.team.clone(),
+            )
+                .into(),
+        ),
+        Some(context.team.clone()),
+    );
 
     libs::ServerLog::server_event_channel_created(context.team, channel.0, channel_name);
 }
@@ -79,7 +85,7 @@ fn create_thread(
         .unwrap();
 
     let Some(thread) = server.data.create_thread(
-        context.team,
+        context.team.clone(),
         client_uuid.clone(),
         context.channel.clone(),
         thread_title.clone(),
@@ -90,16 +96,19 @@ fn create_thread(
     };
 
     server.client_manager.clients[client_index].write(Created);
-    server.client_manager.clients[client_index].send_event(EventType::ThreadCreated(
-        (
-            thread.0.clone(),
-            thread_title.clone(),
-            thread_body.clone(),
-            client_uuid.clone(),
-            context.channel.clone(),
-        )
-            .into(),
-    ));
+    server.send_global_event(
+        EventType::ThreadCreated(
+            (
+                thread.0.clone(),
+                thread_title.clone(),
+                thread_body.clone(),
+                client_uuid.clone(),
+                context.channel.clone(),
+            )
+                .into(),
+        ),
+        Some(context.team),
+    );
 
     libs::ServerLog::server_event_thread_created(
         context.channel,
@@ -122,7 +131,7 @@ fn create_reply(
         .unwrap();
 
     let Some(reply) = server.data.create_reply(
-        ctx.team,
+        ctx.team.clone(),
         client_uuid.clone(),
         ctx.channel,
         ctx.thread.clone(),
@@ -133,15 +142,19 @@ fn create_reply(
     };
 
     server.client_manager.clients[client_index].write(Created);
-    server.client_manager.clients[client_index].send_event(EventType::ReplyCreated(
-        (
-            reply.0.clone(),
-            reply_body.clone(),
-            client_uuid.clone(),
-            ctx.thread.clone(),
-        )
-            .into(),
-    ));
+
+    server.send_global_event(
+        EventType::ReplyCreated(
+            (
+                reply.0.clone(),
+                reply_body.clone(),
+                client_uuid.clone(),
+                ctx.thread.clone(),
+            )
+                .into(),
+        ),
+        Some(ctx.team),
+    );
 
     libs::ServerLog::server_event_reply_created(ctx.thread, client_uuid, reply_body);
 }

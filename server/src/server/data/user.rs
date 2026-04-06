@@ -6,21 +6,25 @@ pub struct User {
     pub uuid: String,
 }
 
+#[derive(Clone, Debug)]
 pub struct UserLoggedInEvent {
     pub user_uuid: String,
     pub username: String,
 }
 
+#[derive(Clone, Debug)]
 pub struct UserLoggedOutEvent {
     pub user_uuid: String,
     pub username: String,
 }
 
+#[derive(Clone, Debug)]
 pub struct UserSubscribedEvent {
     pub user_uuid: String,
     pub team_uuid: String,
 }
 
+#[derive(Clone, Debug)]
 pub struct UserUnsubscribedEvent {
     pub user_uuid: String,
     pub team_uuid: String,
@@ -31,6 +35,15 @@ impl User {
         Self {
             user_name,
             uuid: get_uuid(),
+        }
+    }
+}
+
+impl From<(String, String)> for UserSubscribedEvent {
+    fn from(value: (String, String)) -> Self {
+        UserSubscribedEvent {
+            user_uuid: value.0,
+            team_uuid: value.1,
         }
     }
 }
