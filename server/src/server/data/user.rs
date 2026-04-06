@@ -47,3 +47,12 @@ impl From<(String, String)> for UserSubscribedEvent {
         }
     }
 }
+
+impl From<(String, String)> for UserUnsubscribedEvent {
+    fn from(value: (String, String)) -> Self {
+        UserUnsubscribedEvent {
+            user_uuid: value.0,
+            team_uuid: value.1,
+        }
+    }
+}

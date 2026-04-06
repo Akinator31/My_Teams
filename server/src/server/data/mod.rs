@@ -286,6 +286,18 @@ impl MyTeamsServerData {
 
         true
     }
+
+    pub fn unsubscribe_from_team(&mut self, team_uuid: String, user_uuid: String) -> bool {
+        let Some(team_index) = self.find_teams(team_uuid) else {
+            return false;
+        };
+
+        self.teams[team_index]
+            .subscribed
+            .retain(|c| c.clone() != user_uuid);
+
+        true
+    }
 }
 
 #[cfg(test)]
