@@ -46,7 +46,15 @@ impl MyTeamsClientManager {
 
     pub fn receive_clients_data(&mut self) -> Result<&MyTeamsClientManager, MyTeamsServerError> {
         for client in &mut self.clients {
-            client.read()?;
+            match client.read() {
+                Ok(_) => {}
+                Err(e) => {
+                    println!(
+                        "An error occured on this client while reading : {:?} -> {:?}",
+                        client, e
+                    );
+                }
+            }
         }
 
         Ok(self)
