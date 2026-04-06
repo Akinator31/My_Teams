@@ -34,3 +34,11 @@ pub fn parse_quoted_args(input: &str) -> Vec<String> {
 
     args
 }
+
+pub fn remove_quoted(input: &str) -> &str {
+    if input.starts_with('"') && input.ends_with('"') && input.len() >= 2 {
+        &input[1..input.len() - 1]
+    } else {
+        input
+    }
+}
