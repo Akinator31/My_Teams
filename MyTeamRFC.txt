@@ -586,6 +586,9 @@ Table of Contents
       -> UNSUBSCRIBE "team_uuid" CRLF
       <- 200 SP Unsubscribed from team CRLF
 
+      Error:
+      <- 404 SP Team not found CRLF
+
    7.12 Set context
 
       -> USE CRLF
