@@ -17,6 +17,7 @@ pub struct Thread {
     pub comments: Vec<Reply>,
 }
 
+#[derive(Clone, Debug)]
 pub struct ThreadCreatedEvent {
     pub thread_uuid: String,
     pub title: String,
@@ -25,6 +26,7 @@ pub struct ThreadCreatedEvent {
     pub channel_uuid: String,
 }
 
+#[derive(Clone, Debug)]
 pub struct ReplyCreatedEvent {
     pub comment_uuid: String,
     pub body: String,
