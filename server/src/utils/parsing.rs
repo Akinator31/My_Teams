@@ -42,3 +42,33 @@ pub fn remove_quoted(input: &str) -> &str {
         input
     }
 }
+
+pub fn split_args(line: &str) -> Vec<&str> {
+    let mut args = Vec::new();
+    let mut start = 0;
+    let mut depth = 0;
+    let mut in_quotes = false;
+
+    for (i, c) in line.char_indices() {
+        match c {
+            '"' if depth == 0 => in_quotes = !in_quotes,
+            '[' if !in_quotes => depth += 1,
+            ']' if !in_quotes => depth -= 1,
+            ' ' if !in_quotes && depth == 0 => {
+                if start < i {
+                    args.push(&line[start..i]);
+                }
+                start = i + 1;
+            }
+            _ => {}
+        }
+    }
+
+    if start < line.len() {
+        args.push(&line[start..]);
+    }
+
+    println!("ARGS : {:?}", args);
+
+    args
+}

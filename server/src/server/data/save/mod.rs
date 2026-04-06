@@ -1,4 +1,5 @@
 use crate::server::data::MyTeamsServerData;
+use crate::utils::parsing::split_args;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 
@@ -23,7 +24,7 @@ impl MyTeamsServerData {
         };
 
         self.save_users(&mut save_file);
-        self.save_dm(&save_file);
+        self.save_dm(&mut save_file);
         self.save_teams(&save_file);
     }
 
@@ -48,8 +49,11 @@ impl MyTeamsServerData {
                 }
             };
 
-            match line.split(' ').collect::<Vec<&str>>().as_slice() {
+            match split_args(&line).as_slice() {
                 ["USER", args @ ..] if self.load_user(args) => Self::logging_load("USER", args),
+                ["DIRECT_MESSAGES", args @ ..] if self.load_dm(args) => {
+                    Self::logging_load("DIRECT_MESSAGES", args)
+                }
                 _ => {}
             }
         }
@@ -58,6 +62,9 @@ impl MyTeamsServerData {
     fn logging_load(element: &str, args: &[&str]) {
         match (element, args) {
             ("USER", _) => println!("LOADED {} WITH FOLLOWING DATA : {:?}", element, args),
+            ("DIRECT_MESSAGES", _) => {
+                println!("LOADED {} WITH FOLLOWING DATA : {:?}", element, args)
+            }
             _ => {}
         }
     }
