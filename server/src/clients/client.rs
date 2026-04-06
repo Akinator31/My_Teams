@@ -1,6 +1,7 @@
 use crate::clients::client::ClientState::ToBeDisconnected;
 use crate::clients::context::Context;
 use crate::errors::myteams_errors::MyTeamsServerError;
+use crate::server::commands::list::{ListChannels, ListReplies, ListTeams, ListThreads};
 use crate::server::data::channel::ChannelCreatedEvent;
 use crate::server::data::team::TeamCreatedEvent;
 use crate::server::data::thread::{ReplyCreatedEvent, ThreadCreatedEvent};
@@ -28,6 +29,10 @@ pub enum OkeyResponse {
     UnsubscribedToTeam,
     EnfOfSubscribedTeams,
     EnfOfSubscribedUsers,
+    EndOfTeamsList,
+    EndOfChannelsList,
+    EndOfThreadsList,
+    EndOfRepliesList,
 }
 
 #[derive(Debug, PartialEq, Eq, Hash)]
@@ -38,6 +43,10 @@ pub enum SuccessCode {
     UserLoggedOut,
     MessageSent,
     MessageListFollows(Message),
+    TeamsListFollows(ListTeams),
+    ChannelsListFollows(ListChannels),
+    ThreadsListFollows(ListThreads),
+    RepliesListFollows(ListReplies),
     UsersListFollows(User, bool),
     UserInfoFollows(User, bool),
     SubscribedTeamsListFollows(String),
@@ -76,6 +85,10 @@ impl Display for OkeyResponse {
             OkeyResponse::UnsubscribedToTeam => write!(f, "Unsubscribed to a team"),
             OkeyResponse::EnfOfSubscribedTeams => write!(f, "End of subscribed teams"),
             OkeyResponse::EnfOfSubscribedUsers => write!(f, "End of subscribed users"),
+            OkeyResponse::EndOfTeamsList => write!(f, "End of teams list"),
+            OkeyResponse::EndOfChannelsList => write!(f, "End of channels list"),
+            OkeyResponse::EndOfThreadsList => write!(f, "End of threads list"),
+            OkeyResponse::EndOfRepliesList => write!(f, "End of replies list"),
         }
     }
 }
@@ -88,12 +101,36 @@ impl From<SuccessCode> for String {
             SuccessCode::UserLoggedIn(username) => {
                 format!("210 User logged in. UUID: {}\r\n", username)
             }
-            SuccessCode::UserLoggedOut => "211 User logged out.\r\n".to_string(),
+            SuccessCode::UserLoggedOut => "211 User logged out\r\n".to_string(),
             SuccessCode::MessageSent => "220 Message sent\r\n".to_string(),
             SuccessCode::MessageListFollows(message) => {
                 format!(
                     "221 \"{}\" \"{}\" \"{}\"\r\n",
                     message.sender, message.timestamp, message.body
+                )
+            }
+            SuccessCode::TeamsListFollows(list) => {
+                format!(
+                    "230 \"{}\" \"{}\" \"{}\"\r\n",
+                    list.team_uuid, list.name, list.description
+                )
+            }
+            SuccessCode::ChannelsListFollows(list) => {
+                format!(
+                    "233 \"{}\" \"{}\" \"{}\"\r\n",
+                    list.channel_uuid, list.name, list.description
+                )
+            }
+            SuccessCode::ThreadsListFollows(list) => {
+                format!(
+                    "234 \"{}\" \"{}\" \"{}\" \"{}\"\r\n",
+                    list.thread_uuid, list.title, list.creator_uuid, list.timestamp
+                )
+            }
+            SuccessCode::RepliesListFollows(list) => {
+                format!(
+                    "235 \"{}\" \"{}\" \"{}\" \"{}\"\r\n",
+                    list.comment_uuid, list.body, list.creator_uuid, list.timestamp
                 )
             }
             SuccessCode::UsersListFollows(user, is_logged_in) => {
@@ -126,7 +163,7 @@ impl From<ErrorCode> for String {
         match value {
             ErrorCode::BadRequest => "400 Bad request\r\n".to_string(),
             ErrorCode::NotFound => "404 Not found\r\n".to_string(),
-            ErrorCode::Unauthorized => "403 Forbidden (insufficient permissions)\r\n".to_string(),
+            ErrorCode::Unauthorized => "403 Forbidden\r\n".to_string(),
             ErrorCode::NoContextSet => "411 No context set\r\n".to_string(),
         }
     }
