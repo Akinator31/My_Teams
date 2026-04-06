@@ -2,16 +2,17 @@ use crate::utils::parsing::parse_quoted_args;
 
 pub mod commands;
 pub mod create;
+pub mod list;
 pub mod login;
 pub mod logout;
 pub mod messages;
 pub mod send;
 pub mod set_context;
-mod subscribe;
-mod subscribed;
-mod unsubscribe;
+pub mod subscribe;
+pub mod subscribed;
+pub mod unsubscribe;
 pub mod user;
-mod users;
+pub mod users;
 
 pub trait FromArgs: Sized {
     const COUNT: usize;

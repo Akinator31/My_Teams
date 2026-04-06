@@ -1,3 +1,4 @@
+use crate::utils::get_timestamp;
 use crate::utils::uuid::get_uuid;
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
@@ -6,6 +7,7 @@ pub struct Reply {
     pub thread_uuid: String,
     pub user_uuid: String,
     pub body: String,
+    pub timestamp: i64,
 }
 
 pub struct Thread {
@@ -14,6 +16,7 @@ pub struct Thread {
     pub author: String,
     pub title: String,
     pub body: String,
+    pub timestamp: i64,
     pub comments: Vec<Reply>,
 }
 
@@ -42,6 +45,7 @@ impl Thread {
             author: user_uuid,
             title,
             body,
+            timestamp: get_timestamp(),
             comments: Vec::new(),
         }
     }
@@ -54,6 +58,7 @@ impl Reply {
             thread_uuid,
             user_uuid,
             body,
+            timestamp: get_timestamp(),
         }
     }
 }

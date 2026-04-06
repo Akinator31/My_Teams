@@ -223,7 +223,12 @@ impl MyTeamsServerData {
         thread_title: String,
         thread_body: String,
     ) -> Option<(String, usize)> {
-        let new_thread = Thread::new(channel_uuid.clone(), user_uuid, thread_title, thread_body);
+        let new_thread = Thread::new(
+            channel_uuid.clone(),
+            user_uuid.clone(),
+            thread_title,
+            thread_body.clone(),
+        );
 
         let Some(team_index) = self.find_teams(team_uuid) else {
             return None;
@@ -239,6 +244,10 @@ impl MyTeamsServerData {
                 .push(new_thread);
             self.teams[team_index].channels[channel_index].threads.len() - 1
         };
+
+        self.teams[team_index].channels[channel_index].threads[new_thread_index]
+            .comments
+            .push(Reply::new(new_thread_uuid.clone(), user_uuid, thread_body));
 
         Some((new_thread_uuid, new_thread_index))
     }
