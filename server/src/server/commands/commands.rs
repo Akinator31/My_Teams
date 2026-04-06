@@ -1,4 +1,5 @@
 use crate::server::commands::create::create;
+use crate::server::commands::list::list;
 use crate::server::commands::login::login;
 use crate::server::commands::logout::logout;
 use crate::server::commands::messages::messages;
@@ -31,6 +32,7 @@ pub fn commands() -> &'static CommandType {
         cmd.insert("SUBSCRIBE".to_string(), subscribe);
         cmd.insert("UNSUBSCRIBE".to_string(), unsubscribe);
         cmd.insert("SUBSCRIBED".to_string(), subscribed);
+        cmd.insert("LIST".to_string(), list);
 
         cmd
     })
