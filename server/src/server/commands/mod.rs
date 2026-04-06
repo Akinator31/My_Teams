@@ -8,6 +8,7 @@ pub mod messages;
 pub mod send;
 pub mod set_context;
 mod subscribe;
+mod subscribed;
 mod unsubscribe;
 pub mod user;
 mod users;

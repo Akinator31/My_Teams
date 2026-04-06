@@ -26,6 +26,8 @@ pub enum OkeyResponse {
     EndOfUsers,
     SubscribedToTeam,
     UnsubscribedToTeam,
+    EnfOfSubscribedTeams,
+    EnfOfSubscribedUsers,
 }
 
 #[derive(Debug, PartialEq, Eq, Hash)]
@@ -38,6 +40,8 @@ pub enum SuccessCode {
     MessageListFollows(Message),
     UsersListFollows(User, bool),
     UserInfoFollows(User, bool),
+    SubscribedTeamsListFollows(String),
+    SubscribedUsersListFollows(String),
     ContextSet(Context),
 }
 
@@ -70,6 +74,8 @@ impl Display for OkeyResponse {
             OkeyResponse::EndOfUsers => write!(f, "End of users list"),
             OkeyResponse::SubscribedToTeam => write!(f, "Subscribed to a team"),
             OkeyResponse::UnsubscribedToTeam => write!(f, "Unsubscribed to a team"),
+            OkeyResponse::EnfOfSubscribedTeams => write!(f, "End of subscribed teams"),
+            OkeyResponse::EnfOfSubscribedUsers => write!(f, "End of subscribed users"),
         }
     }
 }
@@ -101,6 +107,12 @@ impl From<SuccessCode> for String {
                     "213 \"{}\" \"{}\" \"{}\"\r\n",
                     user.uuid, user.user_name, is_logged_in
                 )
+            }
+            SuccessCode::SubscribedTeamsListFollows(team_uuid) => {
+                format!("231 \"{}\"\r\n", team_uuid)
+            }
+            SuccessCode::SubscribedUsersListFollows(user_uuid) => {
+                format!("232 \"{}\"\r\n", user_uuid)
             }
             SuccessCode::ContextSet(context) => {
                 format!("250 Context set to {}\r\n", context)
