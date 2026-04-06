@@ -4,13 +4,18 @@ use crate::clients::client::SuccessCode::Created;
 use crate::clients::context::{Context, ContextChannel, ContextTeam, ContextThread};
 use crate::server::server::MyTeamsServer;
 use crate::utils::parsing::parse_quoted_args;
+use crate::{MAX_BODY_LENGTH, MAX_DESCRIPTION_LENGTH, MAX_NAME_LENGTH};
 
 fn create_team(
     server: &mut MyTeamsServer,
     client_index: usize,
     team_name: String,
     team_description: String,
-) {
+) -> bool {
+    if team_name.len() > MAX_NAME_LENGTH || team_description.len() > MAX_DESCRIPTION_LENGTH {
+        return false;
+    }
+
     let client_uuid = server.client_manager.clients[client_index]
         .uuid
         .clone()
@@ -37,6 +42,8 @@ fn create_team(
     );
 
     libs::ServerLog::server_event_team_created(team.0, team_name, client_uuid);
+
+    true
 }
 
 fn create_channel(
@@ -45,14 +52,18 @@ fn create_channel(
     channel_name: String,
     channel_description: String,
     context: ContextTeam,
-) {
+) -> bool {
+    if channel_name.len() > MAX_NAME_LENGTH || channel_description.len() > MAX_DESCRIPTION_LENGTH {
+        return false;
+    }
+
     let Some(channel) = server.data.create_channel(
         context.team.clone(),
         channel_name.clone(),
         channel_description.clone(),
     ) else {
         server.client_manager.clients[client_index].write(NotFound);
-        return;
+        return true;
     };
 
     server.client_manager.clients[client_index].write(Created);
@@ -70,6 +81,8 @@ fn create_channel(
     );
 
     libs::ServerLog::server_event_channel_created(context.team, channel.0, channel_name);
+
+    true
 }
 
 fn create_thread(
@@ -78,7 +91,11 @@ fn create_thread(
     thread_title: String,
     thread_body: String,
     context: ContextChannel,
-) {
+) -> bool {
+    if thread_title.len() > MAX_NAME_LENGTH || thread_body.len() > MAX_BODY_LENGTH {
+        return false;
+    }
+
     let client_uuid = server.client_manager.clients[client_index]
         .uuid
         .clone()
@@ -92,7 +109,7 @@ fn create_thread(
         thread_body.clone(),
     ) else {
         server.client_manager.clients[client_index].write(NotFound);
-        return;
+        return true;
     };
 
     server.client_manager.clients[client_index].write(Created);
@@ -117,6 +134,8 @@ fn create_thread(
         thread_title,
         thread_body,
     );
+
+    true
 }
 
 fn create_reply(
@@ -124,7 +143,11 @@ fn create_reply(
     client_index: usize,
     reply_body: String,
     ctx: ContextThread,
-) {
+) -> bool {
+    if reply_body.len() > MAX_BODY_LENGTH {
+        return false;
+    }
+
     let client_uuid = server.client_manager.clients[client_index]
         .uuid
         .clone()
@@ -138,7 +161,7 @@ fn create_reply(
         reply_body.clone(),
     ) else {
         server.client_manager.clients[client_index].write(NotFound);
-        return;
+        return true;
     };
 
     server.client_manager.clients[client_index].write(Created);
@@ -157,6 +180,8 @@ fn create_reply(
     );
 
     libs::ServerLog::server_event_reply_created(ctx.thread, client_uuid, reply_body);
+
+    true
 }
 
 pub fn create(server: &mut MyTeamsServer, client_index: usize, command_args: String) -> bool {
@@ -177,37 +202,29 @@ pub fn create(server: &mut MyTeamsServer, client_index: usize, command_args: Str
     let context = server.client_manager.clients[client_index].context.clone();
 
     match (context, args.as_slice()) {
-        (Some(Context::None), [team_name, team_description]) => {
-            create_team(
-                server,
-                client_index,
-                team_name.clone(),
-                team_description.clone(),
-            );
-        }
-        (Some(Context::Team(ctx)), [channel_name, channel_description]) => {
-            create_channel(
-                server,
-                client_index,
-                channel_name.clone(),
-                channel_description.clone(),
-                ctx,
-            );
-        }
-        (Some(Context::Channel(ctx)), [thread_name, thread_description]) => {
-            create_thread(
-                server,
-                client_index,
-                thread_name.clone(),
-                thread_description.clone(),
-                ctx,
-            );
-        }
+        (Some(Context::None), [team_name, team_description]) => create_team(
+            server,
+            client_index,
+            team_name.clone(),
+            team_description.clone(),
+        ),
+        (Some(Context::Team(ctx)), [channel_name, channel_description]) => create_channel(
+            server,
+            client_index,
+            channel_name.clone(),
+            channel_description.clone(),
+            ctx,
+        ),
+        (Some(Context::Channel(ctx)), [thread_name, thread_description]) => create_thread(
+            server,
+            client_index,
+            thread_name.clone(),
+            thread_description.clone(),
+            ctx,
+        ),
         (Some(Context::Thread(ctx)), [reply_body]) => {
             create_reply(server, client_index, reply_body.clone(), ctx)
         }
-        _ => return false,
+        _ => false,
     }
-
-    true
 }

@@ -1,16 +1,16 @@
-mod errors;
 mod clients;
+mod errors;
 mod server;
 mod utils;
 
-use std::error::Error;
-use std::sync::atomic::Ordering;
 use crate::server::server::MyTeamsServer;
 use crate::utils::signals::{setup_signal_handler, SHUTDOWN};
+use std::error::Error;
+use std::sync::atomic::Ordering;
 
-static MAX_NAME_LENGTH: u8 = 32;
-static MAX_DESCRIPTION_LENGTH: u8 = 255;
-static MAX_BODY_LENGTH: u16 = 512;
+static MAX_NAME_LENGTH: usize = 32;
+static MAX_DESCRIPTION_LENGTH: usize = 255;
+static MAX_BODY_LENGTH: usize = 512;
 
 fn main() -> Result<(), Box<dyn Error>> {
     let mut server = MyTeamsServer::new()?;
