@@ -1,17 +1,23 @@
 use crate::server::data::channel::Channel;
+use crate::server::data::save::MyTeamsSave;
 use crate::server::data::team::Team;
 use crate::server::data::thread::{Reply, Thread};
 use crate::server::data::user::User;
 use crate::utils::get_timestamp;
 use std::collections::hash_map::Entry;
 use std::collections::HashMap;
+use std::fmt::{Display, Formatter};
+use std::fs::File;
 use std::hash::{Hash, Hasher};
+use std::io::Write;
 
 pub mod channel;
 pub mod save;
 pub mod team;
 pub mod thread;
 pub mod user;
+
+type DirectMessages = HashMap<UserPair, Vec<Message>>;
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Message {
@@ -28,7 +34,7 @@ pub struct MessageCreatedEvent {
 
 pub struct MyTeamsServerData {
     pub users: Vec<User>,
-    direct_messages: HashMap<UserPair, Vec<Message>>,
+    direct_messages: DirectMessages,
     pub teams: Vec<Team>,
 }
 
@@ -59,6 +65,30 @@ impl Hash for UserPair {
             self.1.hash(state);
             self.0.hash(state);
         }
+    }
+}
+
+struct MessageList(Vec<Message>);
+
+impl Display for Message {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "[\"{}\" \"{}\" \"{}\"]",
+            self.sender, self.body, self.timestamp
+        )
+    }
+}
+
+impl Display for MessageList {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        for (i, message) in self.0.iter().enumerate() {
+            if i > 0 {
+                write!(f, ", ")?;
+            }
+            write!(f, "{}", message)?;
+        }
+        Ok(())
     }
 }
 
@@ -307,6 +337,30 @@ impl MyTeamsServerData {
             .retain(|c| c.clone() != user_uuid);
 
         true
+    }
+}
+
+impl MyTeamsSave for DirectMessages {
+    fn save(&self, save_file: &mut File) {
+        for (user_pair, message) in self {
+            match writeln!(
+                save_file,
+                "DIRECT_MESSAGES \"{}\" \"{}\" {}",
+                user_pair.0,
+                user_pair.1,
+                MessageList(message.clone())
+            ) {
+                Ok(_) => {}
+                Err(e) => {
+                    println!("An error occured while saving a user : {}", e.to_string());
+                    return;
+                }
+            }
+        }
+    }
+
+    fn load(args: &[&str]) -> Option<Self> {
+        todo!()
     }
 }
 

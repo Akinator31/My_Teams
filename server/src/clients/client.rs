@@ -107,7 +107,7 @@ impl From<SuccessCode> for String {
             SuccessCode::Okay(message) => format!("200 {}\r\n", message),
             SuccessCode::Created => "201 Created\r\n".to_string(),
             SuccessCode::UserLoggedIn(username) => {
-                format!("210 User logged in. UUID: {}\r\n", username)
+                format!("210 User logged in. UUID: \"{}\"\r\n", username)
             }
             SuccessCode::UserLoggedOut => "211 User logged out\r\n".to_string(),
             SuccessCode::InfoUserFollows(user) => {
