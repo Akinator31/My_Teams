@@ -7,6 +7,7 @@ pub mod logout;
 pub mod messages;
 pub mod send;
 pub mod set_context;
+mod subscribe;
 pub mod user;
 mod users;
 
