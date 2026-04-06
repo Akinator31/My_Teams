@@ -34,6 +34,7 @@ pub enum OkeyResponse {
     EndOfChannelsList,
     EndOfThreadsList,
     EndOfRepliesList,
+    EndOfHelp,
 }
 
 #[derive(Debug, PartialEq, Eq, Hash)]
@@ -57,6 +58,7 @@ pub enum SuccessCode {
     InfoTeamFollows(TeamInfo),
     InfoChannelFollows(ChannelInfo),
     InfoThreadFollows(ThreadInfo),
+    AvailableCommands,
 }
 
 #[derive(Debug, PartialEq, Eq, Hash)]
@@ -94,6 +96,7 @@ impl Display for OkeyResponse {
             OkeyResponse::EndOfChannelsList => write!(f, "End of channels list"),
             OkeyResponse::EndOfThreadsList => write!(f, "End of threads list"),
             OkeyResponse::EndOfRepliesList => write!(f, "End of replies list"),
+            OkeyResponse::EndOfHelp => write!(f, "End of help"),
         }
     }
 }
@@ -186,6 +189,11 @@ impl From<SuccessCode> for String {
                     thread.creator_uuid,
                     thread.timestamp
                 )
+            }
+            SuccessCode::AvailableCommands => {
+                "214 Available commands: LOGIN LOGOUT USERS USER SEND MESSAGES SUBSCRIBE \
+                SUBSCRIBED UNSUBSCRIBE USE CREATE LIST INFO\r\n"
+                    .to_string()
             }
         }
     }
