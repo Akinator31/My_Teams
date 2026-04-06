@@ -25,6 +25,7 @@ pub enum OkeyResponse {
     EndOfMessages,
     EndOfUsers,
     SubscribedToTeam,
+    UnsubscribedToTeam,
 }
 
 #[derive(Debug, PartialEq, Eq, Hash)]
@@ -68,6 +69,7 @@ impl Display for OkeyResponse {
             OkeyResponse::EndOfMessages => write!(f, "End of messages"),
             OkeyResponse::EndOfUsers => write!(f, "End of users list"),
             OkeyResponse::SubscribedToTeam => write!(f, "Subscribed to a team"),
+            OkeyResponse::UnsubscribedToTeam => write!(f, "Unsubscribed to a team"),
         }
     }
 }
