@@ -5,6 +5,7 @@ use crate::server::commands::messages::messages;
 use crate::server::commands::send::send;
 use crate::server::commands::set_context::set_context;
 use crate::server::commands::subscribe::subscribe;
+use crate::server::commands::unsubscribe::unsubscribe;
 use crate::server::commands::user::user;
 use crate::server::commands::users::users;
 use crate::server::server::MyTeamsServer;
@@ -27,6 +28,7 @@ pub fn commands() -> &'static CommandType {
         cmd.insert("USE".to_string(), set_context);
         cmd.insert("CREATE".to_string(), create);
         cmd.insert("SUBSCRIBE".to_string(), subscribe);
+        cmd.insert("UNSUBSCRIBE".to_string(), unsubscribe);
 
         cmd
     })
