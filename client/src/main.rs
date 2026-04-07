@@ -1,35 +1,60 @@
 mod commands;
 mod errors;
+mod transport;
 
 use std::env::args;
-use std::io::{BufRead};
+use std::io::BufRead;
 use std::net::TcpStream;
 use std::process::exit;
+
 use crate::commands::commands::commands;
+use crate::transport::read_line;
 
 fn usage(bin_name: String) {
     println!("USAGE: {} <ip> <port>", bin_name);
 }
 
 fn client(mut stream: TcpStream) {
-    stream.set_nonblocking(true);
+    let _ = stream.set_nonblocking(true);
+    let mut pending: Vec<u8> = Vec::new();
+
+    match read_line(&mut stream, &mut pending) {
+        Ok(greeting) => {
+            if !greeting.starts_with("200") {
+                println!("Unexpected server greeting: {}", greeting);
+            }
+        }
+        Err(e) => {
+            println!("Failed to read server greeting: {}", e);
+            return;
+        }
+    }
+
     let stdin = std::io::stdin();
     let mut lines = stdin.lock().lines();
 
     while let Some(line_result) = lines.next() {
         match line_result {
             Ok(line) => {
-                if !line.starts_with("/") {
+                let line_trimmed = line.trim();
+                if !line_trimmed.starts_with('/') {
                     println!("Incorrect command!");
-                    continue
+                    continue;
                 }
-                let command = line.split(" ").next().unwrap_or("");
-                let command_trimmed = command.strip_prefix("/").unwrap();
+                let without_slash = &line_trimmed[1..];
+                let (cmd_name, cmd_args) = match without_slash.find(' ') {
+                    Some(i) => {
+                        let name = without_slash[..i].trim();
+                        let rest = without_slash[i + 1..].trim_start();
+                        (name, rest)
+                    }
+                    None => (without_slash, ""),
+                };
 
-                if let Some(command_trimmed) = commands().get(command_trimmed) {
-                    command_trimmed();
+                if let Some(handler) = commands().get(cmd_name) {
+                    handler(&mut stream, &mut pending, cmd_args);
                 } else {
-                    println!("Unknow command!");
+                    println!("Unknown command!");
                 }
             }
             Err(e) => {
@@ -51,7 +76,7 @@ fn main() -> std::io::Result<()> {
     let port: u16 = args[2].clone().parse().unwrap();
     let address = format!("{}:{}", ip, port);
 
-    let mut stream = TcpStream::connect(address)?;
-    client(stream); // parcontre ça stop le serveur quand je stop le client wtf (Error: IoError)
+    let stream = TcpStream::connect(address)?;
+    client(stream);
     Ok(())
 }
