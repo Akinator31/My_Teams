@@ -1,3 +1,4 @@
+use std::cmp::PartialEq;
 use crate::server::data::channel::Channel;
 use crate::server::data::save::MyTeamsSave;
 use crate::server::data::team::Team;
@@ -241,16 +242,17 @@ impl MyTeamsServerData {
         thread_body: String,
     ) -> Option<(String, usize)> {
         let new_thread = Thread::new(
+            team_uuid.clone(),
             channel_uuid.clone(),
             user_uuid.clone(),
             thread_title,
             thread_body.clone(),
         );
 
-        let Some(team_index) = self.find_teams(team_uuid) else {
+        let Some(team_index) = self.find_teams(team_uuid.clone()) else {
             return None;
         };
-        let Some(channel_index) = self.find_channels(team_index, channel_uuid) else {
+        let Some(channel_index) = self.find_channels(team_index, channel_uuid.clone()) else {
             return None;
         };
 
@@ -264,7 +266,7 @@ impl MyTeamsServerData {
 
         self.teams[team_index].channels[channel_index].threads[new_thread_index]
             .comments
-            .push(Reply::new(new_thread_uuid.clone(), user_uuid, thread_body));
+            .push(Reply::new(team_uuid, channel_uuid, new_thread_uuid.clone(), user_uuid, thread_body));
 
         Some((new_thread_uuid, new_thread_index))
     }
@@ -277,7 +279,7 @@ impl MyTeamsServerData {
         thread_uuid: String,
         body: String,
     ) -> Option<(String, usize)> {
-        let new_reply = Reply::new(thread_uuid.clone(), user_uuid, body);
+        let new_reply = Reply::new(team_uuid.clone(), channel_uuid.clone(), thread_uuid.clone(), user_uuid, body);
 
         let Some(team_index) = self.find_teams(team_uuid) else {
             return None;

@@ -1,5 +1,4 @@
 use crate::server::data::save::MyTeamsSave;
-use crate::utils::parsing::remove_quoted;
 use crate::utils::uuid::get_uuid;
 use std::fs::File;
 use std::io::Write;
@@ -75,8 +74,8 @@ impl MyTeamsSave for User {
     fn load(args: &[&str]) -> Option<Self> {
         match args {
             [username, uuid] => Some(User {
-                user_name: remove_quoted(*username).to_string(),
-                uuid: remove_quoted(*uuid).to_string(),
+                user_name: username.trim_matches('"').to_string(),
+                uuid: uuid.trim_matches('"').to_string(),
             }),
             _ => None,
         }
