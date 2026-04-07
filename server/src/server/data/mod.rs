@@ -1,16 +1,24 @@
+use std::cmp::PartialEq;
 use crate::server::data::channel::Channel;
+use crate::server::data::save::MyTeamsSave;
 use crate::server::data::team::Team;
 use crate::server::data::thread::{Reply, Thread};
 use crate::server::data::user::User;
 use crate::utils::get_timestamp;
 use std::collections::hash_map::Entry;
 use std::collections::HashMap;
+use std::fmt::{Display, Formatter};
+use std::fs::File;
 use std::hash::{Hash, Hasher};
+use std::io::Write;
 
 pub mod channel;
+pub mod save;
 pub mod team;
 pub mod thread;
 pub mod user;
+
+type DirectMessages = HashMap<UserPair, Vec<Message>>;
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Message {
@@ -27,7 +35,7 @@ pub struct MessageCreatedEvent {
 
 pub struct MyTeamsServerData {
     pub users: Vec<User>,
-    direct_messages: HashMap<UserPair, Vec<Message>>,
+    direct_messages: DirectMessages,
     pub teams: Vec<Team>,
 }
 
@@ -58,6 +66,16 @@ impl Hash for UserPair {
             self.1.hash(state);
             self.0.hash(state);
         }
+    }
+}
+
+impl Display for Message {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "[\"{}\" \"{}\" \"{}\"]",
+            self.sender, self.body, self.timestamp
+        )
     }
 }
 
@@ -224,16 +242,17 @@ impl MyTeamsServerData {
         thread_body: String,
     ) -> Option<(String, usize)> {
         let new_thread = Thread::new(
+            team_uuid.clone(),
             channel_uuid.clone(),
             user_uuid.clone(),
             thread_title,
             thread_body.clone(),
         );
 
-        let Some(team_index) = self.find_teams(team_uuid) else {
+        let Some(team_index) = self.find_teams(team_uuid.clone()) else {
             return None;
         };
-        let Some(channel_index) = self.find_channels(team_index, channel_uuid) else {
+        let Some(channel_index) = self.find_channels(team_index, channel_uuid.clone()) else {
             return None;
         };
 
@@ -247,7 +266,7 @@ impl MyTeamsServerData {
 
         self.teams[team_index].channels[channel_index].threads[new_thread_index]
             .comments
-            .push(Reply::new(new_thread_uuid.clone(), user_uuid, thread_body));
+            .push(Reply::new(team_uuid, channel_uuid, new_thread_uuid.clone(), user_uuid, thread_body));
 
         Some((new_thread_uuid, new_thread_index))
     }
@@ -260,7 +279,7 @@ impl MyTeamsServerData {
         thread_uuid: String,
         body: String,
     ) -> Option<(String, usize)> {
-        let new_reply = Reply::new(thread_uuid.clone(), user_uuid, body);
+        let new_reply = Reply::new(team_uuid.clone(), channel_uuid.clone(), thread_uuid.clone(), user_uuid, body);
 
         let Some(team_index) = self.find_teams(team_uuid) else {
             return None;
@@ -306,6 +325,28 @@ impl MyTeamsServerData {
             .retain(|c| c.clone() != user_uuid);
 
         true
+    }
+}
+
+impl MyTeamsSave for DirectMessages {
+    fn save(&self, save_file: &mut File) {
+        for (user_pair, messages) in self {
+            for message in messages {
+                match writeln!(
+                    save_file,
+                    "DIRECT_MESSAGES \"{}\" \"{}\" {}",
+                    user_pair.0,
+                    user_pair.1,
+                    message.clone()
+                ) {
+                    Ok(_) => {}
+                    Err(e) => {
+                        println!("An error occured while saving a user : {}", e.to_string());
+                        return;
+                    }
+                }
+            }
+        }
     }
 }
 

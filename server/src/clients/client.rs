@@ -107,7 +107,7 @@ impl From<SuccessCode> for String {
             SuccessCode::Okay(message) => format!("200 {}\r\n", message),
             SuccessCode::Created => "201 Created\r\n".to_string(),
             SuccessCode::UserLoggedIn(username) => {
-                format!("210 User logged in. UUID: {}\r\n", username)
+                format!("210 User logged in. UUID: \"{}\"\r\n", username)
             }
             SuccessCode::UserLoggedOut => "211 User logged out\r\n".to_string(),
             SuccessCode::InfoUserFollows(user) => {
@@ -328,18 +328,17 @@ impl Client {
 
     pub fn write(&mut self, message: impl Into<String>) {
         let message = message.into();
+        let buf = message.as_bytes();
+        let mut written = 0;
 
-        loop {
-            match (self.stream).write_all(message.as_bytes()) {
-                Ok(_) => break,
+        while written < buf.len() {
+            match self.stream.write(&buf[written..]) {
+                Ok(n) => written += n,
                 Err(e) if e.kind() == WouldBlock => {
                     continue;
                 }
                 Err(e) => {
-                    println!(
-                        "An error occured during writing the resposes to tcpsocket: {}",
-                        e.to_string()
-                    );
+                    eprintln!("Error writing to client: {e}");
                     break;
                 }
             }

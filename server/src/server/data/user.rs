@@ -1,4 +1,7 @@
+use crate::server::data::save::MyTeamsSave;
 use crate::utils::uuid::get_uuid;
+use std::fs::File;
+use std::io::Write;
 
 #[derive(Clone, Debug, Eq, PartialEq, Hash)]
 pub struct User {
@@ -53,6 +56,28 @@ impl From<(String, String)> for UserUnsubscribedEvent {
         UserUnsubscribedEvent {
             user_uuid: value.0,
             team_uuid: value.1,
+        }
+    }
+}
+
+impl MyTeamsSave for User {
+    fn save(&self, save_file: &mut File) {
+        match writeln!(save_file, "USER \"{}\" \"{}\"", self.user_name, self.uuid) {
+            Ok(_) => {}
+            Err(e) => {
+                println!("An error occured while saving a user : {}", e.to_string());
+                return;
+            }
+        }
+    }
+
+    fn load(args: &[&str]) -> Option<Self> {
+        match args {
+            [username, uuid] => Some(User {
+                user_name: username.trim_matches('"').to_string(),
+                uuid: uuid.trim_matches('"').to_string(),
+            }),
+            _ => None,
         }
     }
 }

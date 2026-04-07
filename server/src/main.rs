@@ -15,6 +15,7 @@ static MAX_BODY_LENGTH: usize = 512;
 fn main() -> Result<(), Box<dyn Error>> {
     let mut server = MyTeamsServer::new()?;
 
+    server.data.load_save();
     server.client_manager.set_nonblocking(true)?;
     setup_signal_handler();
 
@@ -33,5 +34,6 @@ fn main() -> Result<(), Box<dyn Error>> {
         server.execute_clients_pending_command();
     }
 
+    server.data.save();
     Ok(())
 }
