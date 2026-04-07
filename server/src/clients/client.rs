@@ -328,18 +328,17 @@ impl Client {
 
     pub fn write(&mut self, message: impl Into<String>) {
         let message = message.into();
+        let buf = message.as_bytes();
+        let mut written = 0;
 
-        loop {
-            match (self.stream).write_all(message.as_bytes()) {
-                Ok(_) => break,
+        while written < buf.len() {
+            match self.stream.write(&buf[written..]) {
+                Ok(n) => written += n,
                 Err(e) if e.kind() == WouldBlock => {
                     continue;
                 }
                 Err(e) => {
-                    println!(
-                        "An error occured during writing the resposes to tcpsocket: {}",
-                        e.to_string()
-                    );
+                    eprintln!("Error writing to client: {e}");
                     break;
                 }
             }
