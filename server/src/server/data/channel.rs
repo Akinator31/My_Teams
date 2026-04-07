@@ -1,5 +1,8 @@
+use crate::server::data::save::MyTeamsSave;
 use crate::server::data::thread::Thread;
 use crate::utils::uuid::get_uuid;
+use std::fs::File;
+use std::io::Write;
 
 pub struct Channel {
     pub team: String,
@@ -36,6 +39,37 @@ impl From<(String, String, String, String)> for ChannelCreatedEvent {
             name: value.1,
             description: value.2,
             team_uuid: value.3,
+        }
+    }
+}
+
+impl MyTeamsSave for Channel {
+    fn save(&self, save_file: &mut File) {
+        match writeln!(save_file, "CHANNEL \"{}\" \"{}\" \"{}\" \"{}\"", self.team, self.uuid, self.name, self.description) {
+            Ok(_) => {}
+            Err(e) => {
+                println!("An error occurred while saving a user : {}", e.to_string());
+                return;
+            }
+        }
+
+        for thread in &self.threads {
+            thread.save(save_file);
+        }
+    }
+
+    fn load(args: &[&str]) -> Option<Self> {
+        match args {
+            [team, uuid, name, description] => {
+                Some(Channel {
+                    team: team.trim_matches('"').to_string(),
+                    uuid: uuid.trim_matches('"').to_string(),
+                    name: name.trim_matches('"').to_string(),
+                    description: description.trim_matches('"').to_string(),
+                    threads: Vec::new(),
+                })
+            }
+            _ => None,
         }
     }
 }
