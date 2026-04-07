@@ -10,7 +10,9 @@ pub mod users;
 pub trait MyTeamsSave: Sized {
     fn save(&self, save_file: &mut File);
 
-    fn load(args: &[&str]) -> Option<Self>;
+    fn load(_args: &[&str]) -> Option<Self> {
+        None
+    }
 }
 
 impl MyTeamsServerData {
@@ -54,7 +56,11 @@ impl MyTeamsServerData {
                 ["DIRECT_MESSAGES", args @ ..] if self.load_dm(args) => {
                     Self::logging_load("DIRECT_MESSAGES", args)
                 }
-                _ => {}
+                _ => {
+                    println!("The save file is corrupted! The MyTeams server data has been reset.");
+                    *self = Self::new();
+                    return;
+                }
             }
         }
     }

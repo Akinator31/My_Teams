@@ -68,8 +68,6 @@ impl Hash for UserPair {
     }
 }
 
-struct MessageList(Vec<Message>);
-
 impl Display for Message {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(
@@ -77,18 +75,6 @@ impl Display for Message {
             "[\"{}\" \"{}\" \"{}\"]",
             self.sender, self.body, self.timestamp
         )
-    }
-}
-
-impl Display for MessageList {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        for (i, message) in self.0.iter().enumerate() {
-            if i > 0 {
-                write!(f, ", ")?;
-            }
-            write!(f, "{}", message)?;
-        }
-        Ok(())
     }
 }
 
@@ -342,25 +328,23 @@ impl MyTeamsServerData {
 
 impl MyTeamsSave for DirectMessages {
     fn save(&self, save_file: &mut File) {
-        for (user_pair, message) in self {
-            match writeln!(
-                save_file,
-                "DIRECT_MESSAGES \"{}\" \"{}\" {}",
-                user_pair.0,
-                user_pair.1,
-                MessageList(message.clone())
-            ) {
-                Ok(_) => {}
-                Err(e) => {
-                    println!("An error occured while saving a user : {}", e.to_string());
-                    return;
+        for (user_pair, messages) in self {
+            for message in messages {
+                match writeln!(
+                    save_file,
+                    "DIRECT_MESSAGES \"{}\" \"{}\" {}",
+                    user_pair.0,
+                    user_pair.1,
+                    message.clone()
+                ) {
+                    Ok(_) => {}
+                    Err(e) => {
+                        println!("An error occured while saving a user : {}", e.to_string());
+                        return;
+                    }
                 }
             }
         }
-    }
-
-    fn load(args: &[&str]) -> Option<Self> {
-        todo!()
     }
 }
 
