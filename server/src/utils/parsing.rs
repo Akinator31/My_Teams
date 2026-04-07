@@ -68,7 +68,5 @@ pub fn split_args(line: &str) -> Vec<&str> {
         args.push(&line[start..]);
     }
 
-    println!("ARGS : {:?}", args);
-
     args
 }
