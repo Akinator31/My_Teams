@@ -12,7 +12,7 @@ pub fn commands() -> &'static ClientCommandType {
     COMMANDS.get_or_init(|| {
         let mut cmds: ClientCommandType = HashMap::new();
 
-        // cmds.insert("login".to_string(), login);
+        cmds.insert("login".to_string(), login);
         cmds
     })
 }

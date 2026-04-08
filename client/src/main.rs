@@ -8,7 +8,7 @@ use std::net::TcpStream;
 use std::process::exit;
 
 use crate::commands::commands::commands;
-use crate::transport::read_line;
+use crate::transport::{print_colored_reply, read_line};
 
 fn usage(bin_name: String) {
     println!("USAGE: {} <ip> <port>", bin_name);
@@ -20,9 +20,7 @@ fn client(mut stream: TcpStream) {
 
     match read_line(&mut stream, &mut pending) {
         Ok(greeting) => {
-            if !greeting.starts_with("200") {
-                println!("Unexpected server greeting: {}", greeting);
-            }
+            print_colored_reply(&greeting);
         }
         Err(e) => {
             println!("Failed to read server greeting: {}", e);
