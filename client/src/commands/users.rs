@@ -4,14 +4,14 @@ use crate::transport::write_line;
 use libs::ClientLog;
 use std::net::TcpStream;
 
-fn get_user_info(line: &str) -> Option<(String, String, i32)> {
+fn get_user_info(line: &str) -> Option<(String, String, bool)> {
     let parts: Vec<&str> = line.split_whitespace().collect();
     if parts.len() < 3 {
         return None;
     }
     let uuid = parts[0].to_string();
     let username = parts[1].to_string();
-    let status = parts[2].parse::<i32>().ok()?;
+    let status = parts[2].to_string() == "True";
     Some((uuid, username, status))
 }
 
@@ -28,10 +28,9 @@ pub fn users(stream: &mut TcpStream, buffer: &mut Vec<u8>, args: &str) {
     };
     match reply_code(&reply) {
         Some(212) => {
-            for line in reply.lines().skip(1) {
+            for line in reply.lines() {
                 if let Some((uuid, username, status)) = get_user_info(line) {
-                    println!("User: {} (UUID: {}, Status: {})", username, uuid, status);
-                    ClientLog::client_print_users(uuid, username, status);
+                    ClientLog::client_print_users(uuid, username, status.into());
                 } else {
                     eprintln!("Failed to parse user info from line: {}", line);
                 }
