@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use std::sync::OnceLock;
 
 use crate::client::io_manager::IoManager;
+use crate::commands::info::info;
 use crate::commands::login::login;
 use crate::commands::mt_use::mt_use;
 use crate::commands::send::send;
@@ -21,6 +22,7 @@ pub fn commands() -> &'static ClientCommandType {
         cmds.insert("user".to_string(), user);
         cmds.insert("use".to_string(), mt_use);
         cmds.insert("send".to_string(), send);
+        cmds.insert("info".to_string(), info);
         cmds
     })
 }
