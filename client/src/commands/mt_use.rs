@@ -5,7 +5,7 @@ use crate::transport::write_line;
 use std::net::TcpStream;
 
 pub fn mt_use(stream: &mut TcpStream, buffer: &mut Vec<u8>, args: &str) {
-    let cmd = format!("USE {}", args.trim());
+    let cmd = format!("USE {}", args);
 
     if let Err(e) = write_line(stream, &cmd) {
         println!("Error occurred while writing to stream: {}", e);
