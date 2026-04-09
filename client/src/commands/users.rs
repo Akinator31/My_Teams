@@ -29,7 +29,6 @@ pub fn users(stream: &mut TcpStream, buffer: &mut Vec<u8>, args: &str) {
             }
         };
         if (reply_code(&reply)) == Some(200) {
-            println!("End of list.");
             break;
         }
         if (reply_code(&reply)) == Some(212) {
