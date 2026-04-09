@@ -18,13 +18,13 @@ fn get_user_info(line: &str) -> Option<(String, String, bool)> {
 
 pub fn users(stream: &mut TcpStream, buffer: &mut Vec<u8>, args: &str) {
     if let Err(e) = write_line(stream, "USERS") {
-        eprintln!("Error occurred while writing to stream: {}", e);
+        println!("Error occurred while writing to stream: {}", e);
     }
     loop {
         let reply = match read_line(stream, buffer) {
             Ok(line) => line,
             Err(e) => {
-                eprintln!("Error occurred while reading from stream: {}", e);
+                println!("Error occurred while reading from stream: {}", e);
                 break;
             }
         };

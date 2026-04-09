@@ -56,7 +56,7 @@ fn client(mut stream: TcpStream) {
                 }
             }
             Err(e) => {
-                eprintln!("An error occured reading stdin : {}", e);
+                println!("An error occured reading stdin : {}", e);
             }
         }
     }

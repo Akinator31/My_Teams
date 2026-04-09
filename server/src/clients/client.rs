@@ -338,7 +338,7 @@ impl Client {
                     continue;
                 }
                 Err(e) => {
-                    eprintln!("Error writing to client: {e}");
+                    println!("Error writing to client: {e}");
                     break;
                 }
             }
