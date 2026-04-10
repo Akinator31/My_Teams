@@ -3,6 +3,7 @@ use std::net::TcpStream;
 use std::sync::OnceLock;
 
 use crate::commands::login::login;
+use crate::commands::mt_use::mt_use;
 use crate::commands::send::send;
 use crate::commands::users::users;
 
@@ -16,6 +17,7 @@ pub fn commands() -> &'static ClientCommandType {
 
         cmds.insert("login".to_string(), login);
         cmds.insert("users".to_string(), users);
+        cmds.insert("use".to_string(), mt_use);
         cmds.insert("send".to_string(), send);
         cmds
     })
