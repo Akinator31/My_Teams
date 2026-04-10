@@ -3,6 +3,7 @@ use std::net::TcpStream;
 use std::sync::OnceLock;
 
 use crate::commands::login::login;
+use crate::commands::send::send;
 use crate::commands::users::users;
 
 type ClientCommandType = HashMap<String, fn(&mut TcpStream, &mut Vec<u8>, &str)>;
@@ -15,6 +16,7 @@ pub fn commands() -> &'static ClientCommandType {
 
         cmds.insert("login".to_string(), login);
         cmds.insert("users".to_string(), users);
+        cmds.insert("send".to_string(), send);
         cmds
     })
 }
