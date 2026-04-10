@@ -29,9 +29,11 @@ pub fn users(stream: &mut TcpStream, buffer: &mut Vec<u8>, args: &str) {
             }
         };
         if (reply_code(&reply)) == Some(200) {
+            print_colored_reply(&reply);
             break;
         }
         if (reply_code(&reply)) == Some(212) {
+            print_colored_reply(&reply);
             for line in reply.lines() {
                 if let Some((uuid, username, status)) = get_user_info(line) {
                     ClientLog::client_print_users(uuid, username, status.into());

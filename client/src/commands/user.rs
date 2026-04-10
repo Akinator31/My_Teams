@@ -33,6 +33,7 @@ pub fn user(stream: &mut TcpStream, buffer: &mut Vec<u8>, args: &str) {
 
     match code {
         Some(213) => {
+            print_colored_reply(&reply);
             if let Some((uuid, username, status)) = get_user_info(&reply) {
                 ClientLog::client_print_user(uuid, username, status.into());
             } else {
@@ -40,6 +41,7 @@ pub fn user(stream: &mut TcpStream, buffer: &mut Vec<u8>, args: &str) {
             }
         }
         Some(404) => {
+            print_colored_reply(&reply);
             let uuid = args.trim().to_string();
             ClientLog::client_error_unknown_user(uuid);
         }

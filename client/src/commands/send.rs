@@ -35,12 +35,15 @@ pub fn send(stream: &mut TcpStream, buffer: &mut Vec<u8>, args: &str) {
 
     match code {
         Some(220) => {
+            print_colored_reply(&reply);
             println!("Message sent successfully.");
         }
         Some(404) => {
+            print_colored_reply(&reply);
             ClientLog::client_error_unknown_user(message_info.0);
         }
         Some(401) => {
+            print_colored_reply(&reply);
             ClientLog::client_error_unauthorized();
         }
         _ => {

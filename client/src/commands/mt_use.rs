@@ -23,6 +23,7 @@ pub fn mt_use(stream: &mut TcpStream, buffer: &mut Vec<u8>, args: &str) {
 
     match code {
         Some(250) => {
+            print_colored_reply(&reply);
             println!("Switched context successfully.");
         }
         _ => {
