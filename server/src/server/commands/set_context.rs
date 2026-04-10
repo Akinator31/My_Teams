@@ -1,4 +1,4 @@
-use crate::clients::client::ErrorCode::{NotFound, Unauthorized};
+use crate::clients::client::ErrorCode::Unauthorized;
 use crate::clients::client::SuccessCode::ContextSet;
 use crate::clients::context::{Context, ContextChannel, ContextTeam, ContextThread};
 use crate::server::server::MyTeamsServer;
@@ -12,16 +12,11 @@ fn set_context_to_none(server: &mut MyTeamsServer, client_index: usize) -> bool 
 }
 
 fn set_context_to_team(server: &mut MyTeamsServer, client_index: usize, team_uuid: String) -> bool {
-    if let Some(_) = server.data.find_teams(team_uuid.clone()) {
-        let context = Context::Team(ContextTeam { team: team_uuid });
+    let context = Context::Team(ContextTeam { team: team_uuid });
 
-        server.client_manager.clients[client_index].context = Some(context.clone());
-        server.client_manager.clients[client_index].write(ContextSet(context));
+    server.client_manager.clients[client_index].context = Some(context.clone());
+    server.client_manager.clients[client_index].write(ContextSet(context));
 
-        return true;
-    }
-
-    server.client_manager.clients[client_index].write(NotFound);
     true
 }
 
@@ -31,23 +26,13 @@ fn set_context_to_channel(
     team_uuid: String,
     channel_uuid: String,
 ) -> bool {
-    let Some(team_index) = server.data.find_teams(team_uuid.clone()) else {
-        server.client_manager.clients[client_index].write(NotFound);
-        return true;
-    };
+    let context = Context::Channel(ContextChannel {
+        team: team_uuid,
+        channel: channel_uuid,
+    });
 
-    if let Some(_) = server.data.find_channels(team_index, channel_uuid.clone()) {
-        let context = Context::Channel(ContextChannel {
-            team: team_uuid,
-            channel: channel_uuid,
-        });
-
-        server.client_manager.clients[client_index].context = Some(context.clone());
-        server.client_manager.clients[client_index].write(ContextSet(context));
-        return true;
-    }
-
-    server.client_manager.clients[client_index].write(NotFound);
+    server.client_manager.clients[client_index].context = Some(context.clone());
+    server.client_manager.clients[client_index].write(ContextSet(context));
     true
 }
 
@@ -58,32 +43,14 @@ fn set_context_to_thread(
     channel_uuid: String,
     thread_uuid: String,
 ) -> bool {
-    let Some(team_index) = server.data.find_teams(team_uuid.clone()) else {
-        server.client_manager.clients[client_index].write(NotFound);
-        return true;
-    };
+    let context = Context::Thread(ContextThread {
+        team: team_uuid,
+        channel: channel_uuid,
+        thread: thread_uuid,
+    });
 
-    let Some(channel_index) = server.data.find_channels(team_index, channel_uuid.clone()) else {
-        server.client_manager.clients[client_index].write(NotFound);
-        return true;
-    };
-
-    if let Some(_) = server
-        .data
-        .find_threads(team_index, channel_index, thread_uuid.clone())
-    {
-        let context = Context::Thread(ContextThread {
-            team: team_uuid,
-            channel: channel_uuid,
-            thread: thread_uuid,
-        });
-
-        server.client_manager.clients[client_index].context = Some(context.clone());
-        server.client_manager.clients[client_index].write(ContextSet(context));
-        return true;
-    }
-
-    server.client_manager.clients[client_index].write(NotFound);
+    server.client_manager.clients[client_index].context = Some(context.clone());
+    server.client_manager.clients[client_index].write(ContextSet(context));
     true
 }
 
