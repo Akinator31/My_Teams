@@ -1,7 +1,7 @@
 use crate::clients::client::EventType;
 use crate::server::data::channel::ChannelCreatedEvent;
 use crate::server::data::thread::{ReplyCreatedEvent, ThreadCreatedEvent};
-use crate::server::data::user::{UserSubscribedEvent, UserUnsubscribedEvent};
+use crate::server::data::user::{UserLoggedInEvent, UserSubscribedEvent, UserUnsubscribedEvent};
 use crate::server::server::MyTeamsServer;
 
 macro_rules! impl_from_event {
@@ -16,6 +16,7 @@ macro_rules! impl_from_event {
 
 #[derive(Clone, Debug)]
 enum GlobalEvent {
+    UserLoggedIn(UserLoggedInEvent),
     ChannelCreated(ChannelCreatedEvent),
     ThreadCreated(ThreadCreatedEvent),
     ReplyCreated(ReplyCreatedEvent),
@@ -32,6 +33,7 @@ impl_from_event!(UserUnsubscribed, UserUnsubscribedEvent);
 impl From<GlobalEvent> for EventType {
     fn from(value: GlobalEvent) -> Self {
         match value {
+            GlobalEvent::UserLoggedIn(ctx) => EventType::UserLoggedIn(ctx),
             GlobalEvent::ChannelCreated(ctx) => EventType::ChannelCreated(ctx),
             GlobalEvent::ThreadCreated(ctx) => EventType::ThreadCreated(ctx),
             GlobalEvent::ReplyCreated(ctx) => EventType::ReplyCreated(ctx),
@@ -59,7 +61,9 @@ impl TryFrom<EventType> for GlobalEvent {
 impl MyTeamsServer {
     fn send_event_to_all_clients(&mut self, event: EventType) {
         for client in &mut self.client_manager.clients {
-            client.send_event(event.clone())
+            if client.uuid.is_some() {
+                client.send_event(event.clone())
+            }
         }
     }
 
