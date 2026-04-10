@@ -1,10 +1,10 @@
-use std::cmp::PartialEq;
 use crate::server::data::channel::Channel;
 use crate::server::data::save::MyTeamsSave;
 use crate::server::data::team::Team;
 use crate::server::data::thread::{Reply, Thread};
 use crate::server::data::user::User;
 use crate::utils::get_timestamp;
+use std::cmp::PartialEq;
 use std::collections::hash_map::Entry;
 use std::collections::HashMap;
 use std::fmt::{Display, Formatter};
@@ -125,6 +125,7 @@ impl MyTeamsServerData {
     pub fn user_exist_by_uuid(&self, uuid: &String) -> Option<usize> {
         for (user_index, user) in self.users.iter().enumerate() {
             if user.uuid == uuid.clone() {
+                println!("Receiver index : {}", user_index);
                 return Some(user_index);
             }
         }

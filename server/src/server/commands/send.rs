@@ -21,7 +21,7 @@ pub fn send(server: &mut MyTeamsServer, client_index: usize, command_args: Strin
     let receiver_uuid = &args.0.to_string();
     let message = &args.1.to_string();
 
-    let receiver_index = match server.data.user_exist_by_uuid(&receiver_uuid) {
+    let receiver_index = match server.client_manager.is_client_logged_in(receiver_uuid.to_string()) {
         Some(index) => index,
         None => {
             server.client_manager.clients[client_index].write(NotFound);
