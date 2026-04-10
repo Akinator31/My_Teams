@@ -42,6 +42,15 @@ impl User {
     }
 }
 
+impl From<(String, String)> for UserLoggedInEvent {
+    fn from(value: (String, String)) -> Self {
+        UserLoggedInEvent {
+            user_uuid: value.0,
+            username: value.1,
+        }
+    }
+}
+
 impl From<(String, String)> for UserSubscribedEvent {
     fn from(value: (String, String)) -> Self {
         UserSubscribedEvent {
