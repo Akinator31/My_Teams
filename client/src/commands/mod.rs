@@ -1,7 +1,10 @@
 pub mod commands;
 pub mod info;
 pub mod login;
-pub mod send;
+pub mod logout;
 pub mod set_context;
+pub mod send;
+pub mod subscribe;
+pub mod unsubscribe;
 pub mod user;
 pub mod users;
