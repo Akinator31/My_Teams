@@ -4,8 +4,8 @@ use std::sync::OnceLock;
 use crate::client::io_manager::IoManager;
 use crate::commands::info::info;
 use crate::commands::login::login;
-use crate::commands::mt_use::mt_use;
 use crate::commands::send::send;
+use crate::commands::set_context::set_context;
 use crate::commands::user::user;
 use crate::commands::users::users;
 
@@ -20,7 +20,7 @@ pub fn commands() -> &'static ClientCommandType {
         cmds.insert("login".to_string(), login);
         cmds.insert("users".to_string(), users);
         cmds.insert("user".to_string(), user);
-        cmds.insert("use".to_string(), mt_use);
+        cmds.insert("use".to_string(), set_context);
         cmds.insert("send".to_string(), send);
         cmds.insert("info".to_string(), info);
         cmds

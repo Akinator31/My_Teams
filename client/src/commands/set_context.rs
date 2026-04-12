@@ -1,7 +1,7 @@
 use crate::client::io_manager::IoManager;
 use crate::transport::{print_colored_reply, reply_code};
 
-pub fn mt_use(io_manager: &mut IoManager, args: &str) {
+pub fn set_context(io_manager: &mut IoManager, args: &str) {
     let cmd = format!("USE {}", args);
 
     if let Err(e) = io_manager.write_line(&cmd) {
