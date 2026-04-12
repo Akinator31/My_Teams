@@ -7,6 +7,7 @@ use crate::commands::logout::logout;
 use crate::commands::mt_use::mt_use;
 use crate::commands::send::send;
 use crate::commands::subscribe::subscribe;
+use crate::commands::unsubscribe::unsubscribe;
 use crate::commands::user::user;
 use crate::commands::users::users;
 
@@ -25,6 +26,7 @@ pub fn commands() -> &'static ClientCommandType {
         cmds.insert("use".to_string(), mt_use);
         cmds.insert("send".to_string(), send);
         cmds.insert("subscribe".to_string(), subscribe);
+        cmds.insert("unsubscribe".to_string(), unsubscribe);
         cmds
     })
 }
