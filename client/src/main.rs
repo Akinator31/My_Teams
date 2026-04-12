@@ -1,80 +1,41 @@
+mod client;
 mod commands;
 mod errors;
 mod transport;
+mod utils;
 
-use std::env::args;
-use std::io::BufRead;
-use std::net::TcpStream;
-use std::process::exit;
+use crate::client::Client;
+use crate::utils::signals::{setup_signal_handler, SHUTDOWN};
+use std::error::Error;
+use std::sync::atomic::Ordering;
 
-use crate::commands::commands::commands;
-use crate::transport::{print_colored_reply, read_line};
+fn main() -> Result<(), Box<dyn Error>> {
+    let mut client = Client::new()?;
 
-fn usage(bin_name: String) {
-    println!("USAGE: {} <ip> <port>", bin_name);
-}
+    client.connect()?;
+    setup_signal_handler();
 
-fn client(mut stream: TcpStream) {
-    let _ = stream.set_nonblocking(true);
-    let mut pending: Vec<u8> = Vec::new();
-
-    match read_line(&mut stream, &mut pending) {
-        Ok(greeting) => {
-            print_colored_reply(&greeting);
+    loop {
+        if SHUTDOWN.load(Ordering::SeqCst) {
+            println!("Shutting down MyTeams client...");
+            break;
         }
-        Err(e) => {
-            println!("Failed to read server greeting: {}", e);
-            return;
+
+        client.poll()?;
+
+        while let Some(message) = client.get_pending_server_message() {
+            print!("{}", message);
         }
-    }
 
-    let stdin = std::io::stdin();
-    let mut lines = stdin.lock().lines();
+        while let Some(line) = client.get_pending_stdin_line() {
+            client.execute_stdin_command(line);
+        }
 
-    while let Some(line_result) = lines.next() {
-        match line_result {
-            Ok(line) => {
-                let line_trimmed = line.trim();
-                if !line_trimmed.starts_with('/') {
-                    println!("Incorrect command!");
-                    continue;
-                }
-                let without_slash = &line_trimmed[1..];
-                let (cmd_name, cmd_args) = match without_slash.find(' ') {
-                    Some(i) => {
-                        let name = without_slash[..i].trim();
-                        let rest = without_slash[i + 1..].trim_start();
-                        (name, rest)
-                    }
-                    None => (without_slash, ""),
-                };
-
-                if let Some(handler) = commands().get(cmd_name) {
-                    handler(&mut stream, &mut pending, cmd_args);
-                } else {
-                    println!("Unknown command!");
-                }
-            }
-            Err(e) => {
-                println!("An error occured reading stdin : {}", e);
-            }
+        if client.is_server_disconnected() {
+            println!("Server disconnected.");
+            break;
         }
     }
-}
 
-fn main() -> std::io::Result<()> {
-    let args: Vec<String> = args().collect();
-
-    // libs::ClientLog::client_event_logged_in("Holamos".to_string(), "Holamos".to_string());
-    if args.len() != 3 {
-        usage(args[0].clone());
-        exit(84);
-    }
-    let ip: String = args[1].clone();
-    let port: u16 = args[2].clone().parse().unwrap();
-    let address = format!("{}:{}", ip, port);
-
-    let stream = TcpStream::connect(address)?;
-    client(stream);
     Ok(())
 }

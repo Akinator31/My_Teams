@@ -1,9 +1,6 @@
-use crate::transport::print_colored_reply;
-use crate::transport::read_line;
-use crate::transport::reply_code;
-use crate::transport::write_line;
+use crate::client::io_manager::IoManager;
+use crate::transport::{print_colored_reply, reply_code};
 use libs::ClientLog;
-use std::net::TcpStream;
 
 fn get_message_info(line: &str) -> (String, String) {
     let parts: Vec<&str> = line.split_whitespace().skip(1).collect();
@@ -15,14 +12,14 @@ fn get_message_info(line: &str) -> (String, String) {
     (uuid, message)
 }
 
-pub fn send(stream: &mut TcpStream, buffer: &mut Vec<u8>, args: &str) {
+pub fn send(io_manager: &mut IoManager, args: &str) {
     let formatted_args = format!("SEND {}", args.trim());
 
-    if let Err(e) = write_line(stream, &formatted_args) {
+    if let Err(e) = io_manager.write_line(&formatted_args) {
         println!("Error occurred while writing to stream: {}", e);
     }
 
-    let reply = match read_line(stream, buffer) {
+    let reply = match io_manager.read_line() {
         Ok(line) => line,
         Err(e) => {
             println!("Error occurred while reading from stream: {}", e);

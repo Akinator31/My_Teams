@@ -1,14 +1,14 @@
 use std::collections::HashMap;
-use std::net::TcpStream;
 use std::sync::OnceLock;
 
+use crate::client::io_manager::IoManager;
 use crate::commands::login::login;
-use crate::commands::user::user;
 use crate::commands::mt_use::mt_use;
 use crate::commands::send::send;
+use crate::commands::user::user;
 use crate::commands::users::users;
 
-type ClientCommandType = HashMap<String, fn(&mut TcpStream, &mut Vec<u8>, &str)>;
+type ClientCommandType = HashMap<String, fn(&mut IoManager, &str)>;
 
 static COMMANDS: OnceLock<ClientCommandType> = OnceLock::new();
 

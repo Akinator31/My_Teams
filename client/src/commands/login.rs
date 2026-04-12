@@ -1,10 +1,6 @@
-use std::net::TcpStream;
-
+use crate::client::io_manager::IoManager;
+use crate::transport::{print_colored_reply, reply_code};
 use libs::ClientLog;
-
-use crate::transport::{print_colored_reply, reply_code, read_line, write_line};
-
-const MAX_NAME_LENGTH: usize = 32;
 
 fn parse_one_quoted_username(args: &str) -> Result<String, &'static str> {
     let s = args.trim();
@@ -22,7 +18,7 @@ fn extract_uuid_from_login_reply(line: &str) -> Option<String> {
     }
 }
 
-pub fn login(stream: &mut TcpStream, pending: &mut Vec<u8>, args: &str) {
+pub fn login(io_manager: &mut IoManager, args: &str) {
     let username = match parse_one_quoted_username(args) {
         Ok(u) => u,
         Err(msg) => {
@@ -33,12 +29,12 @@ pub fn login(stream: &mut TcpStream, pending: &mut Vec<u8>, args: &str) {
 
     let line = format!("LOGIN {}", username);
 
-    if let Err(e) = write_line(stream, &line) {
+    if let Err(e) = io_manager.write_line(&line) {
         println!("Failed to send login: {}", e);
         return;
     }
 
-    let reply = match read_line(stream, pending) {
+    let reply = match io_manager.read_line() {
         Ok(l) => l,
         Err(e) => {
             println!("Failed to read server reply: {}", e);
