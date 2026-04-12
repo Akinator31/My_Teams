@@ -21,7 +21,9 @@ pub fn logout(io_manager: &mut IoManager, _args: &str) {
     match code {
         Some(211) => {
             print_colored_reply(&reply);
-            ClientLog::client_event_logged_out(String::new(), String::new());
+            let uuid = io_manager.user_uuid.take().unwrap_or_default();
+            let name = io_manager.user_name.take().unwrap_or_default();
+            ClientLog::client_event_logged_out(uuid, name);
         }
         Some(403) => {
             print_colored_reply(&reply);
