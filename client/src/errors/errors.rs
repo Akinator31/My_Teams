@@ -1,63 +1,41 @@
 use std::fmt;
 use std::fmt::Formatter;
 use std::io::Error;
-use std::net::TcpStream;
 use std::num::ParseIntError;
 
 #[derive(Debug)]
-pub enum MyTeamsServerError {
-    InvalidData,
-    UnexpectedEof,
-    
+pub enum MyTeamsClientError {
+    IncorrectArguments,
+    IncorrectServerPort,
+    IoClientError(String),
 }
 
-impl fmt::Display for MyTeamsServerError {
+impl fmt::Display for MyTeamsClientError {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match self {
-            MyTeamsServerError::InvalidData => {
-                write!(f, "The server returned an invalid data")
+            MyTeamsClientError::IncorrectArguments => {
+                write!(f, "Wrong number of arguments!")
             }
-            MyTeamsServerError::UnexpectedEof => {
-                write!(f, "The server returned an unexpected EOF")
+            MyTeamsClientError::IncorrectServerPort => {
+                write!(f, "Incorrect server port!")
             }
-            // MyTeamsServerError::IncorrectArguments => {
-            //     write!(
-            //         f,
-            //         "Wrong number of arguments! You must provide the port the server should listen on! See help command for more details."
-            //     )
-            // }
-            // MyTeamsServerError::ServerPortParseError => {
-            //     write!(
-            //         f,
-            //         "Failed to parse the given server port! It must be a value from 1 to 65 535!"
-            //     )
-            // }
-            // MyTeamsServerError::IoError => {
-            //     write!(
-            //         f,
-            //         "IO Error!"
-            //     )
-            // },
-            // MyTeamsServerError::ClientConnectionError => {
-            //     write!(
-            //         f,
-            //         "An error occurred during the client connection!"
-            //     )
-            // }
+            MyTeamsClientError::IoClientError(e) => {
+                write!(f, "IO Error on client : {}", e)
+            }
         }
     }
 }
 
-// impl From<ParseIntError> for MyTeamsServerError {
-//     fn from(_value: ParseIntError) -> Self {
-//         MyTeamsServerError::ServerPortParseError
-//     }
-// }
-// 
-// impl From<Error> for MyTeamsServerError {
-//     fn from(_value: Error) -> Self {
-//         MyTeamsServerError::IoError
-//     }
-// }
+impl From<ParseIntError> for MyTeamsClientError {
+    fn from(_value: ParseIntError) -> Self {
+        MyTeamsClientError::IncorrectServerPort
+    }
+}
 
-impl std::error::Error for MyTeamsServerError {}
+impl From<Error> for MyTeamsClientError {
+    fn from(value: Error) -> Self {
+        MyTeamsClientError::IoClientError(value.to_string())
+    }
+}
+
+impl std::error::Error for MyTeamsClientError {}
