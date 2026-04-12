@@ -15,6 +15,9 @@ pub struct IoManager {
 
     server_incoming_buffer: Vec<u8>,
     stdin_incoming_buffer: Vec<u8>,
+
+    pub user_uuid: Option<String>,
+    pub user_name: Option<String>,
 }
 
 impl IoManager {
@@ -27,6 +30,8 @@ impl IoManager {
             server_stream,
             server_incoming_buffer: Vec::new(),
             stdin_incoming_buffer: Vec::new(),
+            user_uuid: None,
+            user_name: None,
         })
     }
 

@@ -3,6 +3,7 @@ use std::sync::OnceLock;
 
 use crate::client::io_manager::IoManager;
 use crate::commands::login::login;
+use crate::commands::logout::logout;
 use crate::commands::mt_use::mt_use;
 use crate::commands::send::send;
 use crate::commands::subscribe::subscribe;
@@ -19,6 +20,7 @@ pub fn commands() -> &'static ClientCommandType {
         let mut cmds: ClientCommandType = HashMap::new();
 
         cmds.insert("login".to_string(), login);
+        cmds.insert("logout".to_string(), logout);
         cmds.insert("users".to_string(), users);
         cmds.insert("user".to_string(), user);
         cmds.insert("use".to_string(), mt_use);
