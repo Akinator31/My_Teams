@@ -1,7 +1,8 @@
 pub mod commands;
+pub mod info;
 pub mod login;
 pub mod logout;
-pub mod mt_use;
+pub mod set_context;
 pub mod send;
 pub mod subscribe;
 pub mod unsubscribe;
