@@ -248,7 +248,7 @@ pub fn format_event(event: EventType) -> String {
         ),
         EventType::UserUnsubscribed(event) => {
             format!(
-                "EVENT TEAM_CREATED \"{}\" \"{}\"\r\n",
+                "EVENT USER_UNSUBSCRIBED \"{}\" \"{}\"\r\n",
                 event.user_uuid, event.team_uuid
             )
         }
