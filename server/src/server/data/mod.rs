@@ -88,15 +88,6 @@ impl MyTeamsServerData {
         }
     }
 
-    pub fn get_user_by_name(&mut self, user_name: &String) -> Option<&User> {
-        for user in &self.users {
-            if user.user_name == user_name.clone() {
-                return Some(user);
-            }
-        }
-        None
-    }
-
     pub fn get_user_by_uuid(&mut self, user_uuid: &String) -> Option<&User> {
         for user in &self.users {
             if user.uuid == user_uuid.clone() {
@@ -311,7 +302,9 @@ impl MyTeamsServerData {
             return false;
         };
 
-        self.teams[team_index].subscribed.push(user_uuid);
+        if !self.teams[team_index].subscribed.contains(&user_uuid) {
+            self.teams[team_index].subscribed.push(user_uuid);
+        }
 
         true
     }
