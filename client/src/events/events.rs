@@ -3,6 +3,7 @@ use crate::events::login::login_event;
 use crate::events::logout::logout_event;
 use crate::events::received::received;
 use crate::events::team::created_team;
+use crate::events::thread::{created_thread, thread_reply};
 use std::collections::HashMap;
 
 type EventHandlerType = HashMap<String, fn(&str)>;
@@ -20,6 +21,8 @@ pub fn events(event: &str) {
     handlers.insert("CHANNEL_CREATED".to_string(), created_channel);
     handlers.insert("TEAM_CREATED".to_string(), created_team);
     handlers.insert("MESSAGE_RECEIVED".to_string(), received);
+    handlers.insert("THREAD_CREATED".to_string(), created_thread);
+    handlers.insert("REPLY_CREATED".to_string(), thread_reply);
 
     if let Some(handler) = handlers.get(event_type) {
         handler(event_data);
