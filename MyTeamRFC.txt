@@ -1,3 +1,6 @@
+/** @page rfc MyTeams Protocol Specification (MYTP/1.0)
+@include MyTeamRFC.txt
+*/
 Network Working Group                                         Epitech
 Request for Comments: MYTEAMS-1                               2025-2026
 Category: Informational
