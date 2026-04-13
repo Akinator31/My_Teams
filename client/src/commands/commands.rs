@@ -5,6 +5,7 @@ use crate::client::io_manager::IoManager;
 use crate::commands::info::info;
 use crate::commands::login::login;
 use crate::commands::logout::logout;
+use crate::commands::messages::messages;
 use crate::commands::set_context::set_context;
 use crate::commands::send::send;
 use crate::commands::subscribe::subscribe;
@@ -29,6 +30,7 @@ pub fn commands() -> &'static ClientCommandType {
         cmds.insert("subscribe".to_string(), subscribe);
         cmds.insert("unsubscribe".to_string(), unsubscribe);
         cmds.insert("info".to_string(), info);
+        cmds.insert("messages".to_string(), messages);
         cmds
     })
 }
