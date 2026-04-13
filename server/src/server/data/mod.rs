@@ -231,7 +231,7 @@ impl MyTeamsServerData {
         channel_uuid: String,
         thread_title: String,
         thread_body: String,
-    ) -> Option<(String, usize)> {
+    ) -> Option<(String, usize, i64)> {
         let new_thread = Thread::new(
             team_uuid.clone(),
             channel_uuid.clone(),
@@ -248,6 +248,7 @@ impl MyTeamsServerData {
         };
 
         let new_thread_uuid = new_thread.uuid.clone();
+        let new_thread_timestamp = new_thread.timestamp.clone();
         let new_thread_index = {
             self.teams[team_index].channels[channel_index]
                 .threads
@@ -257,9 +258,15 @@ impl MyTeamsServerData {
 
         self.teams[team_index].channels[channel_index].threads[new_thread_index]
             .comments
-            .push(Reply::new(team_uuid, channel_uuid, new_thread_uuid.clone(), user_uuid, thread_body));
+            .push(Reply::new(
+                team_uuid,
+                channel_uuid,
+                new_thread_uuid.clone(),
+                user_uuid,
+                thread_body,
+            ));
 
-        Some((new_thread_uuid, new_thread_index))
+        Some((new_thread_uuid, new_thread_index, new_thread_timestamp))
     }
 
     pub fn create_reply(
@@ -270,7 +277,13 @@ impl MyTeamsServerData {
         thread_uuid: String,
         body: String,
     ) -> Option<(String, usize)> {
-        let new_reply = Reply::new(team_uuid.clone(), channel_uuid.clone(), thread_uuid.clone(), user_uuid, body);
+        let new_reply = Reply::new(
+            team_uuid.clone(),
+            channel_uuid.clone(),
+            thread_uuid.clone(),
+            user_uuid,
+            body,
+        );
 
         let Some(team_index) = self.find_teams(team_uuid) else {
             return None;

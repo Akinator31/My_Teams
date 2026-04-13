@@ -231,7 +231,7 @@ pub fn format_event(event: EventType) -> String {
         EventType::ThreadCreated(event) => {
             format!(
                 "EVENT THREAD_CREATED \"{}\" \"{}\" \"{}\" \"{}\" \"{}\"\r\n",
-                event.thread_uuid, event.title, event.body, event.creator_uuid, event.channel_uuid
+                event.thread_uuid, event.title, event.body, event.creator_uuid, event.timestamp
             )
         }
         EventType::ReplyCreated(event) => format!(
