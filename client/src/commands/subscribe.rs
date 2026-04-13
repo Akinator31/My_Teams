@@ -23,7 +23,13 @@ pub fn subscribe(io_manager: &mut IoManager, args: &str) {
     match code {
         Some(200) => {
             print_colored_reply(&reply);
-            ClientLog::client_print_subscribed(String::new(), args.trim().to_string());
+
+            let Some(uuid) = io_manager.user_uuid.as_ref() else {
+                ClientLog::client_print_subscribed(String::new(), args.trim().to_string());
+                return;
+            };
+
+            ClientLog::client_print_subscribed(uuid.clone(), args.trim().to_string());
         }
         Some(404) => {
             print_colored_reply(&reply);
