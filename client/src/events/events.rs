@@ -1,6 +1,7 @@
 use crate::events::channel::created_channel;
 use crate::events::login::login_event;
 use crate::events::logout::logout_event;
+use crate::events::received::received;
 use crate::events::team::created_team;
 use std::collections::HashMap;
 
@@ -18,6 +19,8 @@ pub fn events(event: &str) {
     handlers.insert("USER_LOGGED_OUT".to_string(), logout_event);
     handlers.insert("CHANNEL_CREATED".to_string(), created_channel);
     handlers.insert("TEAM_CREATED".to_string(), created_team);
+    handlers.insert("MESSAGE_RECEIVED".to_string(), received);
+
     if let Some(handler) = handlers.get(event_type) {
         handler(event_data);
     } else {
