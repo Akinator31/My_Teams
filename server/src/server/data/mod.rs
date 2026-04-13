@@ -116,7 +116,6 @@ impl MyTeamsServerData {
     pub fn user_exist_by_uuid(&self, uuid: &String) -> Option<usize> {
         for (user_index, user) in self.users.iter().enumerate() {
             if user.uuid == uuid.clone() {
-                println!("Receiver index : {}", user_index);
                 return Some(user_index);
             }
         }
