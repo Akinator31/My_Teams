@@ -20,6 +20,7 @@ pub fn subscribe(server: &mut MyTeamsServer, client_index: usize, command_args: 
         .subscribe_to_team(team_uuid.clone(), user_uuid.clone())
     {
         server.client_manager.clients[client_index].write(NotFound);
+        return true;
     } else {
         server.client_manager.clients[client_index].write(Okay(SubscribedToTeam));
 
