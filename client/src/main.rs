@@ -1,11 +1,12 @@
 mod client;
 mod commands;
 mod errors;
+mod events;
 mod transport;
 mod utils;
 
 use crate::client::Client;
-use crate::utils::signals::{setup_signal_handler, SHUTDOWN};
+use crate::utils::signals::{SHUTDOWN, setup_signal_handler};
 use std::error::Error;
 use std::sync::atomic::Ordering;
 
@@ -24,7 +25,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         client.poll()?;
 
         while let Some(message) = client.get_pending_server_message() {
-            print!("{}", message);
+            client.execute_server_event(message);
         }
 
         while let Some(line) = client.get_pending_stdin_line() {

@@ -3,6 +3,7 @@ pub mod io_manager;
 use crate::client::io_manager::IoManager;
 use crate::commands::commands::commands;
 use crate::errors::errors::MyTeamsClientError;
+use crate::events::events::events;
 use std::env::args;
 
 pub struct Client {
@@ -100,6 +101,12 @@ impl Client {
         match &mut self.io_manager {
             Some(io_manager) => io_manager.is_server_disconnected(),
             None => true,
+        }
+    }
+
+    pub fn execute_server_event(&mut self, message: String) {
+        if message.trim().starts_with("EVENT") {
+            events(&message);
         }
     }
 }
