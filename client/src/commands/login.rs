@@ -48,7 +48,6 @@ pub fn login(io_manager: &mut IoManager, args: &str) {
             if let Some(uuid) = extract_uuid_from_login_reply(&reply) {
                 io_manager.user_uuid = Some(uuid.clone());
                 io_manager.user_name = Some(username.clone());
-                ClientLog::client_event_logged_in(uuid, username);
             } else {
                 println!("Login succeeded but no UUID found in reply.");
             }
