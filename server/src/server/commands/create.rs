@@ -120,7 +120,7 @@ fn create_thread(
                 thread_title.clone(),
                 thread_body.clone(),
                 client_uuid.clone(),
-                context.channel.clone(),
+                thread.2,
             )
                 .into(),
         ),
