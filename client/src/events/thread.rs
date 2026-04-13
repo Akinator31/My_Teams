@@ -1,5 +1,3 @@
-use core::time;
-
 use libs::ClientLog;
 
 // <thread_uuid> <title> <message> <creator_uuid> <time>
