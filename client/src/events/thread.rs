@@ -4,8 +4,8 @@ use libs::ClientLog;
 pub fn created_thread(data: &str) {
     let mut parts = data.splitn(5, ' ');
     let thread_uuid = parts.next().unwrap_or("").trim_matches('\"').to_string();
-    let title = parts.next().unwrap_or("").to_string();
-    let message = parts.next().unwrap_or("").to_string();
+    let title = parts.next().unwrap_or("").trim_matches('\"').to_string();
+    let message = parts.next().unwrap_or("").trim_matches('\"').to_string();
     let creator_uuid = parts.next().unwrap_or("").trim_matches('\"').to_string();
     let time = parts.next().unwrap_or("").parse::<i64>().unwrap_or(0);
     ClientLog::client_event_thread_created(thread_uuid, creator_uuid, time, title, message);
