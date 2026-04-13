@@ -20,6 +20,7 @@ pub fn unsubscribe(server: &mut MyTeamsServer, client_index: usize, command_args
         .unsubscribe_from_team(team_uuid.clone(), user_uuid.clone())
     {
         server.client_manager.clients[client_index].write(NotFound);
+        return true;
     } else {
         server.client_manager.clients[client_index].write(Okay(UnsubscribedToTeam));
 
