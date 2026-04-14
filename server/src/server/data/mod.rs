@@ -276,7 +276,7 @@ impl MyTeamsServerData {
         channel_uuid: String,
         thread_uuid: String,
         body: String,
-    ) -> Option<(String, usize)> {
+    ) -> Option<(String, usize, i64)> {
         let new_reply = Reply::new(
             team_uuid.clone(),
             channel_uuid.clone(),
@@ -296,6 +296,7 @@ impl MyTeamsServerData {
         };
 
         let new_reply_uuid = new_reply.uuid.clone();
+        let new_reply_timestamp = new_reply.timestamp;
         let new_reply_index = {
             self.teams[team_index].channels[channel_index].threads[thread_index]
                 .comments
@@ -306,7 +307,7 @@ impl MyTeamsServerData {
                 - 1
         };
 
-        Some((new_reply_uuid, new_reply_index))
+        Some((new_reply_uuid, new_reply_index, new_reply_timestamp))
     }
 
     pub fn subscribe_to_team(&mut self, team_uuid: String, user_uuid: String) -> bool {

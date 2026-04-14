@@ -38,9 +38,17 @@ pub enum OkeyResponse {
 }
 
 #[derive(Debug, PartialEq, Eq, Hash)]
+pub enum CreatedResponse {
+    Team(String),
+    Channel(String),
+    Thread(String, i64),
+    Reply(String, i64),
+}
+
+#[derive(Debug, PartialEq, Eq, Hash)]
 pub enum SuccessCode {
     Okay(OkeyResponse),
-    Created,
+    Created(CreatedResponse),
     UserLoggedIn(String),
     UserLoggedOut,
     InfoUserFollows(UserInfo),
@@ -101,11 +109,22 @@ impl Display for OkeyResponse {
     }
 }
 
+impl Display for CreatedResponse {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            CreatedResponse::Team(team_uuid) => write!(f, "\"{}\"", team_uuid),
+            CreatedResponse::Channel(channel_uuid) => write!(f, "\"{}\"", channel_uuid),
+            CreatedResponse::Thread(thread_uuid, thread_timestamp) => write!(f, "\"{}\" \"{}\"", thread_uuid, thread_timestamp),
+            CreatedResponse::Reply(thread_uuid, reply_timestamp) => write!(f, "\"{}\" \"{}\"", thread_uuid, reply_timestamp),
+        }
+    }
+}
+
 impl From<SuccessCode> for String {
     fn from(value: SuccessCode) -> Self {
         match value {
             SuccessCode::Okay(message) => format!("200 {}\r\n", message),
-            SuccessCode::Created => "201 Created\r\n".to_string(),
+            SuccessCode::Created(message) => format!("201 Created. {}\r\n", message),
             SuccessCode::UserLoggedIn(username) => {
                 format!("210 User logged in. UUID: \"{}\"\r\n", username)
             }
