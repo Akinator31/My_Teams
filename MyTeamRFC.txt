@@ -616,19 +616,19 @@ Table of Contents
 
       Context NONE - create a team:
       -> CREATE <team_name> <team_description> CRLF
-      <- 201 SP Created CRLF
+      <- 201 SP Created. <team_uuid> CRLF
 
       Context TEAM - create a channel:
       -> CREATE <channel_name> <channel_description> CRLF
-      <- 201 SP Created CRLF
+      <- 201 SP Created. <team_uuid> CRLF
 
       Context CHANNEL - create a thread:
       -> CREATE <thread_title> <thread_message> CRLF
-      <- 201 SP Created CRLF
+      <- 201 SP Created. <thread_uuid> <thread_timestamp> CRLF
 
       Context THREAD - create a reply:
       -> CREATE <comment_body> CRLF
-      <- 201 SP Created CRLF
+      <- 201 SP Created. <thread_uuid> <reply_timestamp> CRLF
 
       Errors:
       <- 400 SP Bad request CRLF

@@ -1,6 +1,6 @@
 use crate::clients::client::ErrorCode::{NotFound, Unauthorized};
-use crate::clients::client::EventType;
 use crate::clients::client::SuccessCode::Created;
+use crate::clients::client::{CreatedResponse, EventType};
 use crate::clients::context::{Context, ContextChannel, ContextTeam, ContextThread};
 use crate::server::server::MyTeamsServer;
 use crate::utils::parsing::parse_quoted_args;
@@ -27,7 +27,7 @@ fn create_team(
         team_description.clone(),
     );
 
-    server.client_manager.clients[client_index].write(Created);
+    server.client_manager.clients[client_index].write(Created(CreatedResponse::Team(team.0.clone())));
     server.send_global_event(
         EventType::TeamCreated(
             (
@@ -66,7 +66,7 @@ fn create_channel(
         return true;
     };
 
-    server.client_manager.clients[client_index].write(Created);
+    server.client_manager.clients[client_index].write(Created(CreatedResponse::Channel(channel.0.clone())));
     server.send_global_event(
         EventType::ChannelCreated(
             (
@@ -112,7 +112,7 @@ fn create_thread(
         return true;
     };
 
-    server.client_manager.clients[client_index].write(Created);
+    server.client_manager.clients[client_index].write(Created(CreatedResponse::Thread(thread.0.clone(), thread.2)));
     server.send_global_event(
         EventType::ThreadCreated(
             (
@@ -164,7 +164,7 @@ fn create_reply(
         return true;
     };
 
-    server.client_manager.clients[client_index].write(Created);
+    server.client_manager.clients[client_index].write(Created(CreatedResponse::Reply(ctx.thread.clone(), reply.2)));
 
     server.send_global_event(
         EventType::ReplyCreated(
