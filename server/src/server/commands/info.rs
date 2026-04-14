@@ -1,4 +1,4 @@
-use crate::clients::client::ErrorCode::{NoContextSet, NotFound, Unauthorized};
+use crate::clients::client::ErrorCode::{NotFound, Unauthorized};
 use crate::clients::client::SuccessCode::{
     InfoChannelFollows, InfoTeamFollows, InfoThreadFollows, InfoUserFollows,
 };
@@ -141,22 +141,14 @@ pub fn info(server: &mut MyTeamsServer, client_index: usize, command_args: Strin
         return true;
     }
 
-    if server.client_manager.clients[client_index]
-        .context
-        .is_none()
-    {
-        server.client_manager.clients[client_index].write(NoContextSet);
-        return true;
-    }
-
     let args = parse_quoted_args(&command_args);
     let context = server.client_manager.clients[client_index].context.clone();
 
     match (context, args.as_slice()) {
-        (Some(Context::None), []) => user_info(server, client_index),
-        (Some(Context::Team(ctx)), []) => team_info(server, client_index, ctx),
-        (Some(Context::Channel(ctx)), []) => channel_info(server, client_index, ctx),
-        (Some(Context::Thread(ctx)), []) => thread_info(server, client_index, ctx),
+        (Context::None, []) => user_info(server, client_index),
+        (Context::Team(ctx), []) => team_info(server, client_index, ctx),
+        (Context::Channel(ctx), []) => channel_info(server, client_index, ctx),
+        (Context::Thread(ctx), []) => thread_info(server, client_index, ctx),
         _ => return false,
     }
 
