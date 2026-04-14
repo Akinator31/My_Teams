@@ -1,6 +1,5 @@
 use crate::client::io_manager::IoManager;
 use crate::transport::{print_colored_reply, reply_code};
-use crate::utils::parsing::parse_quoted_args;
 
 pub fn create(io_manager: &mut IoManager, args: &str) {
     let line: String = format!("CREATE {}", args);
