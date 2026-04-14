@@ -1,4 +1,4 @@
-use crate::clients::client::ErrorCode::{NoContextSet, NotFound, Unauthorized};
+use crate::clients::client::ErrorCode::{NotFound, Unauthorized};
 use crate::clients::client::OkeyResponse::{
     EndOfChannelsList, EndOfRepliesList, EndOfTeamsList, EndOfThreadsList,
 };
@@ -142,22 +142,14 @@ pub fn list(server: &mut MyTeamsServer, client_index: usize, command_args: Strin
         return true;
     }
 
-    if server.client_manager.clients[client_index]
-        .context
-        .is_none()
-    {
-        server.client_manager.clients[client_index].write(NoContextSet);
-        return true;
-    }
-
     let args = parse_quoted_args(&command_args);
     let context = server.client_manager.clients[client_index].context.clone();
 
     match (context, args.as_slice()) {
-        (Some(Context::None), []) => list_teams(server, client_index),
-        (Some(Context::Team(ctx)), []) => list_channels(server, client_index, ctx),
-        (Some(Context::Channel(ctx)), []) => list_threads(server, client_index, ctx),
-        (Some(Context::Thread(ctx)), []) => list_replies(server, client_index, ctx),
+        (Context::None, []) => list_teams(server, client_index),
+        (Context::Team(ctx), []) => list_channels(server, client_index, ctx),
+        (Context::Channel(ctx), []) => list_threads(server, client_index, ctx),
+        (Context::Thread(ctx), []) => list_replies(server, client_index, ctx),
         _ => return false,
     }
 

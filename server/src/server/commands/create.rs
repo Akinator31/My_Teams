@@ -1,4 +1,4 @@
-use crate::clients::client::ErrorCode::{NoContextSet, NotFound, Unauthorized};
+use crate::clients::client::ErrorCode::{NotFound, Unauthorized};
 use crate::clients::client::EventType;
 use crate::clients::client::SuccessCode::Created;
 use crate::clients::context::{Context, ContextChannel, ContextTeam, ContextThread};
@@ -191,39 +191,31 @@ pub fn create(server: &mut MyTeamsServer, client_index: usize, command_args: Str
         return true;
     }
 
-    if server.client_manager.clients[client_index]
-        .context
-        .is_none()
-    {
-        server.client_manager.clients[client_index].write(NoContextSet);
-        return true;
-    }
-
     let args = parse_quoted_args(&command_args);
     let context = server.client_manager.clients[client_index].context.clone();
 
     match (context, args.as_slice()) {
-        (Some(Context::None), [team_name, team_description]) => create_team(
+        (Context::None, [team_name, team_description]) => create_team(
             server,
             client_index,
             team_name.clone(),
             team_description.clone(),
         ),
-        (Some(Context::Team(ctx)), [channel_name, channel_description]) => create_channel(
+        (Context::Team(ctx), [channel_name, channel_description]) => create_channel(
             server,
             client_index,
             channel_name.clone(),
             channel_description.clone(),
             ctx,
         ),
-        (Some(Context::Channel(ctx)), [thread_name, thread_description]) => create_thread(
+        (Context::Channel(ctx), [thread_name, thread_description]) => create_thread(
             server,
             client_index,
             thread_name.clone(),
             thread_description.clone(),
             ctx,
         ),
-        (Some(Context::Thread(ctx)), [reply_body]) => {
+        (Context::Thread(ctx), [reply_body]) => {
             create_reply(server, client_index, reply_body.clone(), ctx)
         }
         _ => false,

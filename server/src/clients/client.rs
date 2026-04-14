@@ -271,7 +271,7 @@ pub struct Client {
     pub state: ClientState,
 
     pub uuid: Option<String>,
-    pub context: Option<Context>,
+    pub context: Context,
 }
 
 impl Client {
@@ -285,7 +285,7 @@ impl Client {
                 incoming_data_buffer,
                 state,
                 uuid: None,
-                context: None,
+                context: Context::None,
             },
             Err(e) => {
                 println!(
@@ -297,7 +297,7 @@ impl Client {
                     incoming_data_buffer,
                     state,
                     uuid: None,
-                    context: None,
+                    context: Context::None,
                 }
             }
         }
