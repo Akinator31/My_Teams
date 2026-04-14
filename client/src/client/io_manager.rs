@@ -1,5 +1,5 @@
 use crate::errors::errors::MyTeamsClientError;
-use crate::utils::select::{fd_select, FdSet, Timeval};
+use crate::utils::select::{FdSet, Timeval, fd_select};
 use std::io::{Read, Write};
 use std::net::TcpStream;
 use std::os::unix::io::AsRawFd;
@@ -8,6 +8,22 @@ const STDIN_FD: i32 = 0;
 
 unsafe extern "C" {
     fn read(fd: i32, buf: *mut u8, count: usize) -> isize;
+}
+pub struct ContextChannel {
+    pub team: String,
+    pub channel: String,
+}
+pub struct ContextThread {
+    pub team: String,
+    pub channel: String,
+    pub thread: String,
+}
+
+pub enum Context {
+    None,
+    Team(String),
+    Channel(ContextChannel),
+    Thread(ContextThread),
 }
 
 pub struct IoManager {
@@ -18,6 +34,7 @@ pub struct IoManager {
 
     pub user_uuid: Option<String>,
     pub user_name: Option<String>,
+    pub context: Context,
 }
 
 impl IoManager {
@@ -32,6 +49,7 @@ impl IoManager {
             stdin_incoming_buffer: Vec::new(),
             user_uuid: None,
             user_name: None,
+            context: Context::None,
         })
     }
 
@@ -120,11 +138,7 @@ impl IoManager {
     pub fn get_pending_stdin_line(&mut self) -> Option<String> {
         if let Some(pos) = self.stdin_incoming_buffer.iter().position(|&b| b == b'\n') {
             let line: Vec<u8> = self.stdin_incoming_buffer.drain(..pos + 1).collect();
-            Some(
-                String::from_utf8_lossy(&line)
-                    .trim()
-                    .to_string(),
-            )
+            Some(String::from_utf8_lossy(&line).trim().to_string())
         } else {
             None
         }
