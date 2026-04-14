@@ -169,6 +169,7 @@ fn create_reply(
     server.send_global_event(
         EventType::ReplyCreated(
             (
+                ctx.team.clone(),
                 reply.0.clone(),
                 reply_body.clone(),
                 client_uuid.clone(),
