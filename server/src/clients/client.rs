@@ -235,8 +235,8 @@ pub fn format_event(event: EventType) -> String {
             )
         }
         EventType::ReplyCreated(event) => format!(
-            "EVENT REPLY_CREATED \"{}\" \"{}\" \"{}\" \"{}\"\r\n",
-            event.comment_uuid, event.body, event.creator_uuid, event.thread_uuid
+            "EVENT REPLY_CREATED \"{}\" \"{}\" \"{}\" \"{}\" \"{}\"\r\n",
+            event.team_uuid, event.comment_uuid, event.body, event.creator_uuid, event.thread_uuid
         ),
         EventType::MessageReceived(event) => format!(
             "EVENT MESSAGE_RECEIVED \"{}\" \"{}\"\r\n",

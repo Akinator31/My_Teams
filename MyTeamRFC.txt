@@ -716,7 +716,7 @@ Table of Contents
       EVENT THREAD_CREATED    <thread_uuid> <title> <message> <creator_uuid> <channel_uuid>
          Sent to all users subscribed to the relevant team.
 
-      EVENT REPLY_CREATED     <comment_uuid> <body> <creator_uuid> <thread_uuid>
+      EVENT REPLY_CREATED     <team_uuid> <comment_uuid> <body> <creator_uuid> <thread_uuid>
          Sent to all users subscribed to the relevant team.
 
       EVENT MESSAGE_RECEIVED  <sender_uuid> <body>

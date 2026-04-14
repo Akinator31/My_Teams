@@ -37,6 +37,7 @@ pub struct ThreadCreatedEvent {
 
 #[derive(Clone, Debug)]
 pub struct ReplyCreatedEvent {
+    pub team_uuid: String,
     pub comment_uuid: String,
     pub body: String,
     pub creator_uuid: String,
@@ -96,13 +97,14 @@ impl From<(String, String, String, String, i64)> for ThreadCreatedEvent {
     }
 }
 
-impl From<(String, String, String, String)> for ReplyCreatedEvent {
-    fn from(value: (String, String, String, String)) -> Self {
+impl From<(String, String, String, String, String)> for ReplyCreatedEvent {
+    fn from(value: (String, String, String, String, String)) -> Self {
         ReplyCreatedEvent {
-            comment_uuid: value.0,
-            body: value.1,
-            creator_uuid: value.2,
-            thread_uuid: value.3,
+            team_uuid: value.0,
+            comment_uuid: value.1,
+            body: value.2,
+            creator_uuid: value.3,
+            thread_uuid: value.4,
         }
     }
 }
@@ -145,16 +147,6 @@ impl MyTeamsSave for Thread {
             _ => None,
         }
     }
-}
-
-struct Replyd {
-    pub uuid: String,
-    pub team_uuid: String,
-    pub channel_uuid: String,
-    pub thread_uuid: String,
-    pub user_uuid: String,
-    pub body: String,
-    pub timestamp: i64,
 }
 
 impl MyTeamsSave for Reply {
