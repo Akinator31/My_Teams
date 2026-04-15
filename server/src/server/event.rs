@@ -72,7 +72,7 @@ impl MyTeamsServer {
         global_event: GlobalEvent,
         team_uuid: String,
     ) {
-        let Some(team_index) = self.data.find_teams(team_uuid) else {
+        let Some(team_index) = self.data.find_teams_by_uuid(team_uuid) else {
             println!("Team no longer exists!");
             return;
         };

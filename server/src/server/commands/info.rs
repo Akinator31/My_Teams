@@ -1,4 +1,4 @@
-use crate::clients::client::ErrorCode::{NotFound, Unauthorized};
+use crate::clients::client::ErrorCode::{ChannelNotFound, TeamNotFound, ThreadNotFound, Unauthorized};
 use crate::clients::client::SuccessCode::{
     InfoChannelFollows, InfoTeamFollows, InfoThreadFollows, InfoUserFollows,
 };
@@ -60,8 +60,8 @@ fn user_info(server: &mut MyTeamsServer, client_index: usize) {
 }
 
 fn team_info(server: &mut MyTeamsServer, client_index: usize, ctx: ContextTeam) {
-    let Some(team_index) = server.data.find_teams(ctx.team) else {
-        server.client_manager.clients[client_index].write(NotFound);
+    let Some(team_index) = server.data.find_teams_by_uuid(ctx.team.clone()) else {
+        server.client_manager.clients[client_index].write(TeamNotFound(ctx.team));
         return;
     };
 
@@ -79,13 +79,13 @@ fn team_info(server: &mut MyTeamsServer, client_index: usize, ctx: ContextTeam) 
 }
 
 fn channel_info(server: &mut MyTeamsServer, client_index: usize, ctx: ContextChannel) {
-    let Some(team_index) = server.data.find_teams(ctx.team) else {
-        server.client_manager.clients[client_index].write(NotFound);
+    let Some(team_index) = server.data.find_teams_by_uuid(ctx.team.clone()) else {
+        server.client_manager.clients[client_index].write(TeamNotFound(ctx.team));
         return;
     };
 
-    let Some(channel_index) = server.data.find_channels(team_index, ctx.channel) else {
-        server.client_manager.clients[client_index].write(NotFound);
+    let Some(channel_index) = server.data.find_channels_by_uuid(team_index, ctx.channel.clone()) else {
+        server.client_manager.clients[client_index].write(ChannelNotFound(ctx.channel));
         return;
     };
 
@@ -103,21 +103,21 @@ fn channel_info(server: &mut MyTeamsServer, client_index: usize, ctx: ContextCha
 }
 
 fn thread_info(server: &mut MyTeamsServer, client_index: usize, ctx: ContextThread) {
-    let Some(team_index) = server.data.find_teams(ctx.team) else {
-        server.client_manager.clients[client_index].write(NotFound);
+    let Some(team_index) = server.data.find_teams_by_uuid(ctx.team.clone()) else {
+        server.client_manager.clients[client_index].write(TeamNotFound(ctx.team));
         return;
     };
 
-    let Some(channel_index) = server.data.find_channels(team_index, ctx.channel) else {
-        server.client_manager.clients[client_index].write(NotFound);
+    let Some(channel_index) = server.data.find_channels_by_uuid(team_index, ctx.channel.clone()) else {
+        server.client_manager.clients[client_index].write(ChannelNotFound(ctx.channel));
         return;
     };
 
     let Some(thread_index) = server
         .data
-        .find_threads(team_index, channel_index, ctx.thread)
+        .find_threads_by_uuid(team_index, channel_index, ctx.thread.clone())
     else {
-        server.client_manager.clients[client_index].write(NotFound);
+        server.client_manager.clients[client_index].write(ThreadNotFound(ctx.thread));
         return;
     };
 

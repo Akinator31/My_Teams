@@ -1,7 +1,8 @@
-use crate::clients::client::ErrorCode::{NotFound, Unauthorized};
+use crate::clients::client::ErrorCode::{AlreadyExists, ChannelNotFound, TeamNotFound, ThreadNotFound, Unauthorized};
 use crate::clients::client::SuccessCode::Created;
 use crate::clients::client::{CreatedResponse, EventType};
 use crate::clients::context::{Context, ContextChannel, ContextTeam, ContextThread};
+use crate::errors::myteams_errors::MyTeamsServerError;
 use crate::server::server::MyTeamsServer;
 use crate::utils::parsing::parse_quoted_args;
 use crate::{MAX_BODY_LENGTH, MAX_DESCRIPTION_LENGTH, MAX_NAME_LENGTH};
@@ -21,11 +22,21 @@ fn create_team(
         .clone()
         .unwrap();
 
-    let team = server.data.create_team(
+    let team = match server.data.create_team(
         client_uuid.clone(),
         team_name.clone(),
         team_description.clone(),
-    );
+    ) {
+        Ok(team) => team,
+        Err(MyTeamsServerError::AlreadyExist) => {
+            server.client_manager.clients[client_index].write(AlreadyExists);
+            return true;
+        }
+        _ => {
+            println!("Error not handled!");
+            return true;
+        }
+    };
 
     server.client_manager.clients[client_index].write(Created(CreatedResponse::Team(team.0.clone())));
     server.send_global_event(
@@ -57,13 +68,24 @@ fn create_channel(
         return false;
     }
 
-    let Some(channel) = server.data.create_channel(
+    let channel = match server.data.create_channel(
         context.team.clone(),
         channel_name.clone(),
         channel_description.clone(),
-    ) else {
-        server.client_manager.clients[client_index].write(NotFound);
-        return true;
+    ) {
+        Ok(channel) => channel,
+        Err(MyTeamsServerError::AlreadyExist) => {
+            server.client_manager.clients[client_index].write(AlreadyExists);
+            return true;
+        }
+        Err(MyTeamsServerError::TeamNotFound(team_uuid)) => {
+            server.client_manager.clients[client_index].write(TeamNotFound(team_uuid));
+            return true;
+        }
+        _ => {
+            println!("Error not handled!");
+            return true;
+        }
     };
 
     server.client_manager.clients[client_index].write(Created(CreatedResponse::Channel(channel.0.clone())));
@@ -101,15 +123,30 @@ fn create_thread(
         .clone()
         .unwrap();
 
-    let Some(thread) = server.data.create_thread(
+    let thread = match server.data.create_thread(
         context.team.clone(),
         client_uuid.clone(),
         context.channel.clone(),
         thread_title.clone(),
         thread_body.clone(),
-    ) else {
-        server.client_manager.clients[client_index].write(NotFound);
-        return true;
+    ) {
+        Ok(thread) => thread,
+        Err(MyTeamsServerError::AlreadyExist) => {
+            server.client_manager.clients[client_index].write(AlreadyExists);
+            return true;
+        }
+        Err(MyTeamsServerError::TeamNotFound(team_uuid)) => {
+            server.client_manager.clients[client_index].write(TeamNotFound(team_uuid));
+            return true;
+        }
+        Err(MyTeamsServerError::ChannelNotFound(channel_uuid)) => {
+            server.client_manager.clients[client_index].write(ChannelNotFound(channel_uuid));
+            return true;
+        }
+        _ => {
+            println!("Error not handled!");
+            return true;
+        }
     };
 
     server.client_manager.clients[client_index].write(Created(CreatedResponse::Thread(thread.0.clone(), thread.2)));
@@ -153,15 +190,30 @@ fn create_reply(
         .clone()
         .unwrap();
 
-    let Some(reply) = server.data.create_reply(
+    let reply = match server.data.create_reply(
         ctx.team.clone(),
         client_uuid.clone(),
         ctx.channel,
         ctx.thread.clone(),
         reply_body.clone(),
-    ) else {
-        server.client_manager.clients[client_index].write(NotFound);
-        return true;
+    ) {
+        Ok(thread) => thread,
+        Err(MyTeamsServerError::TeamNotFound(team_uuid)) => {
+            server.client_manager.clients[client_index].write(TeamNotFound(team_uuid));
+            return true;
+        }
+        Err(MyTeamsServerError::ChannelNotFound(channel_uuid)) => {
+            server.client_manager.clients[client_index].write(ChannelNotFound(channel_uuid));
+            return true;
+        }
+        Err(MyTeamsServerError::ThreadNotFound(thread_uuid)) => {
+            server.client_manager.clients[client_index].write(ThreadNotFound(thread_uuid));
+            return true;
+        }
+        _ => {
+            println!("Error not handled!");
+            return true;
+        }
     };
 
     server.client_manager.clients[client_index].write(Created(CreatedResponse::Reply(ctx.thread.clone(), reply.2)));

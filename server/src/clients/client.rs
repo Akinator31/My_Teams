@@ -72,7 +72,11 @@ pub enum SuccessCode {
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub enum ErrorCode {
     BadRequest,
-    NotFound,
+    TeamNotFound(String),
+    ChannelNotFound(String),
+    ThreadNotFound(String),
+    UserNotFound(String),
+    AlreadyExists,
     Unauthorized,
     NoContextSet,
 }
@@ -222,9 +226,13 @@ impl From<ErrorCode> for String {
     fn from(value: ErrorCode) -> Self {
         match value {
             ErrorCode::BadRequest => "400 Bad request\r\n".to_string(),
-            ErrorCode::NotFound => "404 Not found\r\n".to_string(),
+            ErrorCode::TeamNotFound(team_uuid) => format!("404 TEAM not found. \"{}\"\r\n", team_uuid),
+            ErrorCode::ChannelNotFound(channel_uuid) => format!("404 CHANNEL not found. \"{}\"\r\n", channel_uuid),
+            ErrorCode::ThreadNotFound(thread_uuid) => format!("404 THREAD not found. \"{}\"\r\n", thread_uuid),
+            ErrorCode::UserNotFound(user_uuid) => format!("404 USER not found. \"{}\"", user_uuid),
             ErrorCode::Unauthorized => "403 Forbidden\r\n".to_string(),
             ErrorCode::NoContextSet => "411 No context set\r\n".to_string(),
+            ErrorCode::AlreadyExists => "409 Already exists\r\n".to_string(),
         }
     }
 }

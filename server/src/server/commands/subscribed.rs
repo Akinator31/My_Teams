@@ -1,4 +1,4 @@
-use crate::clients::client::ErrorCode::{NotFound, Unauthorized};
+use crate::clients::client::ErrorCode::{TeamNotFound, Unauthorized};
 use crate::clients::client::OkeyResponse::{EnfOfSubscribedTeams, EnfOfSubscribedUsers};
 use crate::clients::client::SuccessCode::{
     Okay, SubscribedTeamsListFollows, SubscribedUsersListFollows,
@@ -7,8 +7,8 @@ use crate::server::server::MyTeamsServer;
 use crate::utils::parsing::parse_quoted_args;
 
 fn list_team_subscribed_user(server: &mut MyTeamsServer, client_index: usize, team_uuid: String) {
-    let Some(team_index) = server.data.find_teams(team_uuid) else {
-        server.client_manager.clients[client_index].write(NotFound);
+    let Some(team_index) = server.data.find_teams_by_uuid(team_uuid.clone()) else {
+        server.client_manager.clients[client_index].write(TeamNotFound(team_uuid));
         return;
     };
 

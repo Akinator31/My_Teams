@@ -9,6 +9,10 @@ pub enum MyTeamsServerError {
     ServerPortParseError,
     IoError,
     ClientConnectionError,
+    AlreadyExist,
+    TeamNotFound(String),
+    ChannelNotFound(String),
+    ThreadNotFound(String),
 }
 
 impl fmt::Display for MyTeamsServerError {
@@ -31,11 +35,23 @@ impl fmt::Display for MyTeamsServerError {
                     f,
                     "IO Error!"
                 )
-            },
+            }
             MyTeamsServerError::ClientConnectionError => {
                 write!(
                     f,
                     "An error occurred during the client connection!"
+                )
+            }
+            MyTeamsServerError::AlreadyExist => {
+                write!(
+                    f,
+                    "The resource already exists!"
+                )
+            }
+            _ => {
+                write!(
+                    f,
+                    "An error occurred!"
                 )
             }
         }

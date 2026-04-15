@@ -10,12 +10,12 @@ impl MyTeamsServerData {
             return false;
         };
 
-        let Some(team_index) = self.find_teams(channel.team.clone()) else {
+        let Some(team_index) = self.find_teams_by_uuid(channel.team.clone()) else {
             println!("The save file is corrupted! The MyTeams server data has been reset.");
             *self = Self::new();
             return false;
         };
-        
+
         self.teams[team_index].channels.push(channel);
         true
     }
