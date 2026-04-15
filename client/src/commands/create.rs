@@ -50,11 +50,34 @@ pub fn create(io_manager: &mut IoManager, args: &str) {
             let reply_timestamp: i64 = parts[1].parse().unwrap_or(0);
             ClientLog::client_print_reply_created(thread_uuid, io_manager.user_uuid.clone().unwrap().to_string(), reply_timestamp, args.to_string());
         }
-
-        // errors need to be implemented
+        
+        (Some(404), ctx) => {
+            let parts: Vec<&str> = reply.splitn(5, ' ').collect();
+            match (parts[1]) {
+                "TEAM" => {
+                    ClientLog::client_error_unknown_team(parts[4].to_string());
+                    print_colored_reply(&reply);
+                }
+                "CHANNEL" => {
+                    ClientLog::client_error_unknown_channel(parts[4].to_string());
+                    print_colored_reply(&reply);
+                }
+                "THREAD" => {
+                    ClientLog::client_error_unknown_thread(parts[4].to_string());
+                    print_colored_reply(&reply);
+                }
+                _ => {
+                    print_colored_reply(&reply);
+                }
+            }
+        }
+        (Some(409), _) => {
+            ClientLog::client_error_already_exist();
+            print_colored_reply(&reply);
+        }
 
         _ => {
-
+            print_colored_reply(&reply);
         }
     }
 }
