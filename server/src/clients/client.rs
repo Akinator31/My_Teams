@@ -230,7 +230,7 @@ impl From<ErrorCode> for String {
             ErrorCode::ChannelNotFound(channel_uuid) => format!("404 CHANNEL not found. \"{}\"\r\n", channel_uuid),
             ErrorCode::ThreadNotFound(thread_uuid) => format!("404 THREAD not found. \"{}\"\r\n", thread_uuid),
             ErrorCode::UserNotFound(user_uuid) => format!("404 USER not found. \"{}\"", user_uuid),
-            ErrorCode::Unauthorized => "403 Forbidden\r\n".to_string(),
+            ErrorCode::Unauthorized => "401 Unauthorized\r\n".to_string(),
             ErrorCode::NoContextSet => "411 No context set\r\n".to_string(),
             ErrorCode::AlreadyExists => "409 Already exists\r\n".to_string(),
         }
