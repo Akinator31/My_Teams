@@ -26,6 +26,12 @@ pub enum Context {
     Thread(ContextThread),
 }
 
+impl PartialEq for Context {
+    fn eq(&self, other: &Self) -> bool {
+        self == other
+    }
+}
+
 pub struct IoManager {
     server_stream: TcpStream,
 

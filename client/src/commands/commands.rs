@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use std::sync::OnceLock;
 
 use crate::client::io_manager::IoManager;
+use crate::commands::create::create;
 use crate::commands::info::info;
 use crate::commands::login::login;
 use crate::commands::logout::logout;
@@ -31,6 +32,7 @@ pub fn commands() -> &'static ClientCommandType {
         cmds.insert("unsubscribe".to_string(), unsubscribe);
         cmds.insert("info".to_string(), info);
         cmds.insert("messages".to_string(), messages);
+        cmds.insert("create".to_string(), create);
         cmds
     })
 }

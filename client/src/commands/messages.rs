@@ -40,6 +40,10 @@ pub fn messages(io_manager: &mut IoManager, args: &str) {
             print_colored_reply(&reply);
             break;
         }
+        if (reply_code(&reply)) == Some(401) {
+            ClientLog::client_error_unauthorized();
+            print_colored_reply(&reply);
+        }
         if (reply_code(&reply)) == Some(221) {
             print_colored_reply(&reply);
             let parts: Vec<&str> = reply.splitn(4, ' ').collect();
