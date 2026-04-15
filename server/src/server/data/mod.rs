@@ -1,3 +1,5 @@
+use crate::errors::myteams_errors::MyTeamsServerError;
+use crate::errors::myteams_errors::MyTeamsServerError::{AlreadyExist, ChannelNotFound, TeamNotFound, ThreadNotFound};
 use crate::server::data::channel::Channel;
 use crate::server::data::save::MyTeamsSave;
 use crate::server::data::team::Team;
@@ -150,7 +152,7 @@ impl MyTeamsServerData {
         None
     }
 
-    pub fn find_teams(&mut self, team_uuid: String) -> Option<usize> {
+    pub fn find_teams_by_uuid(&mut self, team_uuid: String) -> Option<usize> {
         for (team_index, team) in self.teams.iter().enumerate() {
             if team.uuid == team_uuid {
                 return Some(team_index);
@@ -159,7 +161,16 @@ impl MyTeamsServerData {
         None
     }
 
-    pub fn find_channels(&mut self, team_index: usize, channel_uuid: String) -> Option<usize> {
+    pub fn find_teams_by_name(&mut self, team_name: String) -> Option<usize> {
+        for (team_index, team) in self.teams.iter().enumerate() {
+            if team.name == team_name {
+                return Some(team_index);
+            }
+        }
+        None
+    }
+
+    pub fn find_channels_by_uuid(&mut self, team_index: usize, channel_uuid: String) -> Option<usize> {
         for (channel_index, channel) in self.teams[team_index].channels.iter().enumerate() {
             if channel.uuid == channel_uuid {
                 return Some(channel_index);
@@ -168,7 +179,16 @@ impl MyTeamsServerData {
         None
     }
 
-    pub fn find_threads(
+    pub fn find_channels_by_name(&mut self, team_index: usize, channel_name: String) -> Option<usize> {
+        for (channel_index, channel) in self.teams[team_index].channels.iter().enumerate() {
+            if channel.name == channel_name {
+                return Some(channel_index);
+            }
+        }
+        None
+    }
+
+    pub fn find_threads_by_uuid(
         &mut self,
         team_index: usize,
         channel_index: usize,
@@ -186,13 +206,35 @@ impl MyTeamsServerData {
         None
     }
 
+    pub fn find_threads_by_name(
+        &mut self,
+        team_index: usize,
+        channel_index: usize,
+        thread_title: String,
+    ) -> Option<usize> {
+        for (thread_index, thread) in self.teams[team_index].channels[channel_index]
+            .threads
+            .iter()
+            .enumerate()
+        {
+            if thread.title == thread_title {
+                return Some(thread_index);
+            }
+        }
+        None
+    }
+
     pub fn create_team(
         &mut self,
         client_uuid: String,
         team_name: String,
         team_description: String,
-    ) -> (String, usize) {
-        let new_team = Team::new(team_name, team_description, client_uuid);
+    ) -> Result<(String, usize), MyTeamsServerError> {
+        let new_team = Team::new(team_name.clone(), team_description, client_uuid);
+
+        if self.find_teams_by_name(team_name).is_some() {
+            return Err(AlreadyExist);
+        }
 
         let new_team_uuid = new_team.uuid.clone();
         let new_team_index = {
@@ -200,7 +242,7 @@ impl MyTeamsServerData {
             self.teams.len() - 1
         };
 
-        (new_team_uuid, new_team_index)
+        Ok((new_team_uuid, new_team_index))
     }
 
     pub fn create_channel(
@@ -208,12 +250,16 @@ impl MyTeamsServerData {
         team_uuid: String,
         channel_name: String,
         channel_description: String,
-    ) -> Option<(String, usize)> {
-        let new_channel = Channel::new(team_uuid.clone(), channel_name, channel_description);
+    ) -> Result<(String, usize), MyTeamsServerError> {
+        let new_channel = Channel::new(team_uuid.clone(), channel_name.clone(), channel_description);
 
-        let Some(team_index) = self.find_teams(team_uuid) else {
-            return None;
+        let Some(team_index) = self.find_teams_by_uuid(team_uuid.clone()) else {
+            return Err(TeamNotFound(team_uuid));
         };
+
+        if self.find_channels_by_name(team_index, channel_name).is_some() {
+            return Err(AlreadyExist);
+        }
 
         let new_channel_uuid = new_channel.uuid.clone();
         let new_channel_index = {
@@ -221,7 +267,7 @@ impl MyTeamsServerData {
             self.teams[team_index].channels.len() - 1
         };
 
-        Some((new_channel_uuid, new_channel_index))
+        Ok((new_channel_uuid, new_channel_index))
     }
 
     pub fn create_thread(
@@ -231,21 +277,25 @@ impl MyTeamsServerData {
         channel_uuid: String,
         thread_title: String,
         thread_body: String,
-    ) -> Option<(String, usize, i64)> {
+    ) -> Result<(String, usize, i64), MyTeamsServerError> {
         let new_thread = Thread::new(
             team_uuid.clone(),
             channel_uuid.clone(),
             user_uuid.clone(),
-            thread_title,
+            thread_title.clone(),
             thread_body.clone(),
         );
 
-        let Some(team_index) = self.find_teams(team_uuid.clone()) else {
-            return None;
+        let Some(team_index) = self.find_teams_by_uuid(team_uuid.clone()) else {
+            return Err(TeamNotFound(team_uuid));
         };
-        let Some(channel_index) = self.find_channels(team_index, channel_uuid.clone()) else {
-            return None;
+        let Some(channel_index) = self.find_channels_by_uuid(team_index, channel_uuid.clone()) else {
+            return Err(ChannelNotFound(channel_uuid));
         };
+
+        if self.find_threads_by_name(team_index, channel_index, thread_title).is_some() {
+            return Err(AlreadyExist);
+        }
 
         let new_thread_uuid = new_thread.uuid.clone();
         let new_thread_timestamp = new_thread.timestamp.clone();
@@ -266,7 +316,7 @@ impl MyTeamsServerData {
                 thread_body,
             ));
 
-        Some((new_thread_uuid, new_thread_index, new_thread_timestamp))
+        Ok((new_thread_uuid, new_thread_index, new_thread_timestamp))
     }
 
     pub fn create_reply(
@@ -276,7 +326,7 @@ impl MyTeamsServerData {
         channel_uuid: String,
         thread_uuid: String,
         body: String,
-    ) -> Option<(String, usize, i64)> {
+    ) -> Result<(String, usize, i64), MyTeamsServerError> {
         let new_reply = Reply::new(
             team_uuid.clone(),
             channel_uuid.clone(),
@@ -285,14 +335,14 @@ impl MyTeamsServerData {
             body,
         );
 
-        let Some(team_index) = self.find_teams(team_uuid) else {
-            return None;
+        let Some(team_index) = self.find_teams_by_uuid(team_uuid.clone()) else {
+            return Err(TeamNotFound(team_uuid));
         };
-        let Some(channel_index) = self.find_channels(team_index, channel_uuid) else {
-            return None;
+        let Some(channel_index) = self.find_channels_by_uuid(team_index, channel_uuid.clone()) else {
+            return Err(ChannelNotFound(channel_uuid));
         };
-        let Some(thread_index) = self.find_threads(team_index, channel_index, thread_uuid) else {
-            return None;
+        let Some(thread_index) = self.find_threads_by_uuid(team_index, channel_index, thread_uuid.clone()) else {
+            return Err(ThreadNotFound(thread_uuid));
         };
 
         let new_reply_uuid = new_reply.uuid.clone();
@@ -307,11 +357,11 @@ impl MyTeamsServerData {
                 - 1
         };
 
-        Some((new_reply_uuid, new_reply_index, new_reply_timestamp))
+        Ok((new_reply_uuid, new_reply_index, new_reply_timestamp))
     }
 
     pub fn subscribe_to_team(&mut self, team_uuid: String, user_uuid: String) -> bool {
-        let Some(team_index) = self.find_teams(team_uuid) else {
+        let Some(team_index) = self.find_teams_by_uuid(team_uuid) else {
             return false;
         };
 
@@ -323,7 +373,7 @@ impl MyTeamsServerData {
     }
 
     pub fn unsubscribe_from_team(&mut self, team_uuid: String, user_uuid: String) -> bool {
-        let Some(team_index) = self.find_teams(team_uuid) else {
+        let Some(team_index) = self.find_teams_by_uuid(team_uuid) else {
             return false;
         };
 

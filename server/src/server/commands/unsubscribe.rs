@@ -1,4 +1,4 @@
-use crate::clients::client::ErrorCode::{NotFound, Unauthorized};
+use crate::clients::client::ErrorCode::{TeamNotFound, Unauthorized};
 use crate::clients::client::EventType;
 use crate::clients::client::OkeyResponse::UnsubscribedToTeam;
 use crate::clients::client::SuccessCode::Okay;
@@ -19,7 +19,7 @@ pub fn unsubscribe(server: &mut MyTeamsServer, client_index: usize, command_args
         .data
         .unsubscribe_from_team(team_uuid.clone(), user_uuid.clone())
     {
-        server.client_manager.clients[client_index].write(NotFound);
+        server.client_manager.clients[client_index].write(TeamNotFound(team_uuid.clone()));
         return true;
     } else {
         server.client_manager.clients[client_index].write(Okay(UnsubscribedToTeam));

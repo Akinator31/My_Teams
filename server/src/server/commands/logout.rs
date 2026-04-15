@@ -1,4 +1,4 @@
-use crate::clients::client::ErrorCode::{NotFound, Unauthorized};
+use crate::clients::client::ErrorCode::{Unauthorized, UserNotFound};
 use crate::clients::client::SuccessCode::UserLoggedOut;
 use crate::server::commands::check_command_format;
 use crate::server::server::MyTeamsServer;
@@ -18,7 +18,7 @@ pub fn logout(server: &mut MyTeamsServer, client_index: usize, command_args: Str
         }
 
         let Some(user_index) = server.data.user_exist_by_uuid(&client_uuid) else {
-            server.client_manager.clients[client_index].write(NotFound);
+            server.client_manager.clients[client_index].write(UserNotFound(client_uuid));
             return true;
         };
 

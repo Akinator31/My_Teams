@@ -1,6 +1,5 @@
 use crate::client::io_manager::IoManager;
 use crate::transport::{print_colored_reply, reply_code};
-use libs::ClientLog;
 
 fn parse_one_quoted_username(args: &str) -> Result<String, &'static str> {
     let s = args.trim();

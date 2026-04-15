@@ -1,4 +1,4 @@
-use crate::clients::client::ErrorCode::{NotFound, Unauthorized};
+use crate::clients::client::ErrorCode::{Unauthorized, UserNotFound};
 use crate::clients::client::OkeyResponse::EndOfMessages;
 use crate::clients::client::SuccessCode::{MessageListFollows, Okay};
 use crate::server::commands::check_command_format;
@@ -19,7 +19,7 @@ pub fn messages(server: &mut MyTeamsServer, client_index: usize, command_args: S
     };
 
     let Some(_) = server.data.user_exist_by_uuid(&user_uuid) else {
-        server.client_manager.clients[client_index].write(NotFound);
+        server.client_manager.clients[client_index].write(UserNotFound(user_uuid));
         return true;
     };
 

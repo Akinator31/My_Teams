@@ -10,13 +10,13 @@ impl MyTeamsServerData {
             return false;
         };
 
-        let Some(team_index) = self.find_teams(thread.team.clone()) else {
+        let Some(team_index) = self.find_teams_by_uuid(thread.team.clone()) else {
             println!("The save file is corrupted! The MyTeams server data has been reset.");
             *self = Self::new();
             return false;
         };
 
-        let Some(channel_index) = self.find_channels(team_index, thread.channel.clone()) else {
+        let Some(channel_index) = self.find_channels_by_uuid(team_index, thread.channel.clone()) else {
             println!("The save file is corrupted! The MyTeams server data has been reset.");
             *self = Self::new();
             return false;

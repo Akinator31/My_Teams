@@ -1,4 +1,4 @@
-use crate::clients::client::ErrorCode::{NotFound, Unauthorized};
+use crate::clients::client::ErrorCode::{Unauthorized, UserNotFound};
 use crate::clients::client::EventType::MessageReceived;
 use crate::clients::client::SuccessCode::MessageSent;
 use crate::server::commands::check_command_format;
@@ -21,10 +21,10 @@ pub fn send(server: &mut MyTeamsServer, client_index: usize, command_args: Strin
     let receiver_uuid = &args.0.to_string();
     let message = &args.1.to_string();
 
-    let receiver_index = match server.client_manager.is_client_logged_in(receiver_uuid.to_string()) {
+    let receiver_index = match server.client_manager.is_client_logged_in(receiver_uuid.clone().to_string()) {
         Some(index) => index,
         None => {
-            server.client_manager.clients[client_index].write(NotFound);
+            server.client_manager.clients[client_index].write(UserNotFound(receiver_uuid.to_string()));
             return true;
         }
     };

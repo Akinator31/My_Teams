@@ -12,19 +12,19 @@ impl MyTeamsServerData {
             return false;
         };
 
-        let Some(team_index) = self.find_teams(reply.team_uuid.clone()) else {
+        let Some(team_index) = self.find_teams_by_uuid(reply.team_uuid.clone()) else {
             println!("The save file is corrupted! The MyTeams server data has been reset.");
             *self = Self::new();
             return false;
         };
 
-        let Some(channel_index) = self.find_channels(team_index, reply.channel_uuid.clone()) else {
+        let Some(channel_index) = self.find_channels_by_uuid(team_index, reply.channel_uuid.clone()) else {
             println!("The save file is corrupted! The MyTeams server data has been reset.");
             *self = Self::new();
             return false;
         };
 
-        let Some(thread_index) = self.find_threads(team_index, channel_index, reply.thread_uuid.clone()) else {
+        let Some(thread_index) = self.find_threads_by_uuid(team_index, channel_index, reply.thread_uuid.clone()) else {
             println!("The save file is corrupted! The MyTeams server data has been reset.");
             *self = Self::new();
             return false;

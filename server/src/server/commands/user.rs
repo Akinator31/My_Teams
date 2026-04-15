@@ -22,7 +22,7 @@ pub fn user(server: &mut MyTeamsServer, client_index: usize, command_args: Strin
         .iter()
         .find(|&user| user.uuid == user_uuid)
     else {
-        server.client_manager.clients[client_index].write(ErrorCode::NotFound);
+        server.client_manager.clients[client_index].write(ErrorCode::UserNotFound(user_uuid));
         return true;
     };
 
