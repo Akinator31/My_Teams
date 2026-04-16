@@ -1,9 +1,10 @@
 use libs::ClientLog;
+use crate::utils::parsing::parse_quoted_segments;
 
 pub fn created_team(data: &str) {
-    let mut parts = data.splitn(4, ' ');
-    let team_uuid = parts.next().unwrap_or("").trim_matches('\"').to_string();
-    let name = parts.next().unwrap_or("").trim_matches('\"').to_string();
-    let description = parts.next().unwrap_or("").trim_matches('\"').to_string();
+    let parts = parse_quoted_segments(data);
+    let team_uuid = parts.get(0).cloned().unwrap_or_default();
+    let name = parts.get(1).cloned().unwrap_or_default();
+    let description = parts.get(2).cloned().unwrap_or_default();
     ClientLog::client_event_team_created(team_uuid, name, description);
 }
