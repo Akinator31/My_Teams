@@ -1,6 +1,15 @@
 use libs::ClientLog;
 use crate::client::io_manager::{Context, IoManager};
 use crate::transport::{print_colored_reply, reply_code};
+use crate::utils::parsing::parse_quoted_segments;
+
+fn parse_created_payload(reply: &str) -> Option<(String, Option<i64>)> {
+    let payload = reply.strip_prefix("201 Created.")?.trim();
+    let mut parts = payload.split_whitespace();
+    let created_uuid = parts.next()?.trim_matches('"').to_string();
+    let created_timestamp = parts.next().map(|raw| raw.trim_matches('"').parse::<i64>().unwrap_or(0));
+    Some((created_uuid, created_timestamp))
+}
 
 pub fn create(io_manager: &mut IoManager, args: &str) {
     let line: String = format!("CREATE {}", args);
@@ -19,56 +28,73 @@ pub fn create(io_manager: &mut IoManager, args: &str) {
     match (reply_code(&reply), &io_manager.context) {
         (Some(201), Context::None) => {
             print_colored_reply(&reply);
-            let parts: Vec<&str> = reply.splitn(1, ' ').collect();
-            let args_parts: Vec<&str> = reply.splitn(2, ' ').collect();
-            let team_uuid = parts[0].trim_matches('"').to_string();
-            let team_name = args_parts[0].trim_matches('"').to_string();
-            let team_description = args_parts[1].trim_matches('"').to_string();
-            ClientLog::client_print_team_created(team_uuid, team_name, team_description);
+            let (team_uuid, _) = match parse_created_payload(&reply) {
+                Some(payload) => payload,
+                None => return,
+            };
+              let args_parts = parse_quoted_segments(args);
+            if args_parts.len() < 2 {
+                return;
+            }
+            ClientLog::client_print_team_created(team_uuid, args_parts[0].clone(), args_parts[1].clone());
         }
-        (Some(201), Context::Team(channel_uuid)) => {
+        (Some(201), Context::Team(_team_uuid)) => {
             print_colored_reply(&reply);
-            let args_parts: Vec<&str> = reply.splitn(2, ' ').collect();
-            let channel_name = args_parts[0].trim_matches('"').to_string();
-            let channel_description = args_parts[1].trim_matches('"').to_string();
-            ClientLog::client_print_channel_created(channel_uuid.to_string(), channel_name, channel_description);
+            let (channel_uuid, _) = match parse_created_payload(&reply) {
+                Some(payload) => payload,
+                None => return,
+            };
+            let args_parts = parse_quoted_segments(args);
+            if args_parts.len() < 2 { return };
+            ClientLog::client_print_channel_created(channel_uuid, args_parts[0].clone(), args_parts[1].clone());
         }
         (Some(201), Context::Channel(_)) => {
             print_colored_reply(&reply);
-            let parts: Vec<&str> = reply.splitn(2, ' ').collect();
-            let args_parts: Vec<&str> = reply.splitn(2, ' ').collect();
-            let thread_uuid = parts[0].trim_matches('"').to_string();
-            let thread_timestamp: i64 = parts[1].parse().unwrap_or(0);
-            let thread_title = args_parts[0].trim_matches('"').to_string();
-            let thread_description = args_parts[1].trim_matches('"').to_string();
-            ClientLog::client_print_thread_created(thread_uuid, io_manager.user_uuid.clone().unwrap().to_string(), thread_timestamp, thread_title, thread_description);
+            let (thread_uuid, thread_timestamp) = match parse_created_payload(&reply) {
+                Some((uuid, Some(timestamp))) => (uuid, timestamp),
+                _ => return,
+            };
+            let args_parts = parse_quoted_segments(args);
+            if args_parts.len() < 2 {
+                return;
+            }
+            let user_uuid = io_manager.user_uuid.clone().unwrap_or_default();
+            ClientLog::client_print_thread_created(thread_uuid, user_uuid, thread_timestamp, args_parts[0].clone(), args_parts[1].clone());
         }
-        (Some(202), Context::Thread(ctx)) => {
+        (Some(201), Context::Thread(_)) => {
             print_colored_reply(&reply);
-            let parts: Vec<&str> = reply.splitn(2, ' ').collect();
-            let thread_uuid = parts[0].trim_matches('"').to_string();
-            let reply_timestamp: i64 = parts[1].parse().unwrap_or(0);
-            ClientLog::client_print_reply_created(thread_uuid, io_manager.user_uuid.clone().unwrap().to_string(), reply_timestamp, args.to_string());
+            let (thread_uuid, reply_timestamp) = match parse_created_payload(&reply) {
+                Some((uuid, Some(timestamp))) => (uuid, timestamp),
+                _ => return,
+            };
+            let user_uuid = io_manager.user_uuid.clone().unwrap_or_default();
+            let args_parts = parse_quoted_segments(args);
+            let reply_body = args_parts.first().cloned().unwrap_or_else(|| args.trim().trim_matches('"').to_string());
+            ClientLog::client_print_reply_created(thread_uuid, user_uuid, reply_timestamp, reply_body);
         }
-        
-        (Some(404), ctx) => {
+
+        (Some(404), _ctx) => {
             let parts: Vec<&str> = reply.splitn(5, ' ').collect();
-            match (parts[1]) {
-                "TEAM" => {
-                    ClientLog::client_error_unknown_team(parts[4].to_string());
-                    print_colored_reply(&reply);
+            if let (Some(type_err), Some(entity_uuid)) = (parts.get(1), parts.get(4)) {
+                match *type_err {
+                    "TEAM" => {
+                        ClientLog::client_error_unknown_team(entity_uuid.to_string());
+                        print_colored_reply(&reply);
+                    }
+                    "CHANNEL" => {
+                        ClientLog::client_error_unknown_channel(entity_uuid.to_string());
+                        print_colored_reply(&reply);
+                    }
+                    "THREAD" => {
+                        ClientLog::client_error_unknown_thread(entity_uuid.to_string());
+                        print_colored_reply(&reply);
+                    }
+                    _ => {
+                        print_colored_reply(&reply);
+                    }
                 }
-                "CHANNEL" => {
-                    ClientLog::client_error_unknown_channel(parts[4].to_string());
-                    print_colored_reply(&reply);
-                }
-                "THREAD" => {
-                    ClientLog::client_error_unknown_thread(parts[4].to_string());
-                    print_colored_reply(&reply);
-                }
-                _ => {
-                    print_colored_reply(&reply);
-                }
+            } else {
+                print_colored_reply(&reply);
             }
         }
         (Some(409), _) => {
