@@ -1,17 +1,9 @@
+use crate::utils::parsing::parse_quoted_segments;
 use libs::ClientLog;
 
 pub fn login_event(data: &str) {
-    let uuid = data
-        .split(' ')
-        .nth(0)
-        .unwrap_or("")
-        .trim_matches('\"')
-        .to_string();
-    let username = data
-        .split(' ')
-        .nth(1)
-        .unwrap_or("")
-        .trim_matches('\"')
-        .to_string();
+    let parts = parse_quoted_segments(data);
+    let uuid = parts.get(0).cloned().unwrap_or_default();
+    let username = parts.get(1).cloned().unwrap_or_default();
     ClientLog::client_event_logged_in(uuid, username);
 }

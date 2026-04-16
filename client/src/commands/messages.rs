@@ -1,6 +1,7 @@
 use crate::client::io_manager::IoManager;
 use crate::transport::{print_colored_reply, reply_code};
 use libs::ClientLog;
+use crate::utils::parsing::parse_quoted_segments;
 
 fn parse_and_validate_uuid(args: &str) -> Option<String> {
     let uuid = args.trim();
@@ -49,8 +50,9 @@ pub fn messages(io_manager: &mut IoManager, args: &str) {
             let parts: Vec<&str> = reply.splitn(4, ' ').collect();
             if parts.len() == 4 {
                 let sender_uuid: String = parts[1].to_string();
-                let timestamp: i64 = parts[2].parse().unwrap_or(0);
-                let body: String = parts[3].to_string();
+                let timestamp_string = &parse_quoted_segments(parts[2])[0];
+                let timestamp: i64 = timestamp_string.parse().unwrap_or(0);
+                let body: String = parts[3].trim().to_string();
                 if sender_uuid.is_empty() || body.is_empty() {
                     println!("Received an invalid message format.");
                     continue;
