@@ -1,12 +1,13 @@
 pub mod commands;
+mod create;
 pub mod info;
+pub mod list_cmd;
 pub mod login;
 pub mod logout;
-pub mod set_context;
+mod messages;
 pub mod send;
+pub mod set_context;
 pub mod subscribe;
 pub mod unsubscribe;
 pub mod user;
 pub mod users;
-mod messages;
-mod create;
