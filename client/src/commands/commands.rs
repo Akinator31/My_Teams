@@ -4,11 +4,12 @@ use std::sync::OnceLock;
 use crate::client::io_manager::IoManager;
 use crate::commands::create::create;
 use crate::commands::info::info;
+use crate::commands::list_cmd::list_cmd;
 use crate::commands::login::login;
 use crate::commands::logout::logout;
 use crate::commands::messages::messages;
-use crate::commands::set_context::set_context;
 use crate::commands::send::send;
+use crate::commands::set_context::set_context;
 use crate::commands::subscribe::subscribe;
 use crate::commands::unsubscribe::unsubscribe;
 use crate::commands::user::user;
@@ -33,6 +34,7 @@ pub fn commands() -> &'static ClientCommandType {
         cmds.insert("info".to_string(), info);
         cmds.insert("messages".to_string(), messages);
         cmds.insert("create".to_string(), create);
+        cmds.insert("list".to_string(), list_cmd);
         cmds
     })
 }
