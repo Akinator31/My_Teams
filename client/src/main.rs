@@ -11,6 +11,11 @@ use std::error::Error;
 use std::sync::atomic::Ordering;
 
 fn main() -> Result<(), Box<dyn Error>> {
+    if std::env::args().any(|arg| arg == "--help") {
+        utils::help::show_help();
+        return Ok(());
+    }
+
     let mut client = Client::new()?;
 
     client.connect()?;

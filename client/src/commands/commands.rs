@@ -3,6 +3,7 @@ use std::sync::OnceLock;
 
 use crate::client::io_manager::IoManager;
 use crate::commands::create::create;
+use crate::commands::help::help_cmd;
 use crate::commands::info::info;
 use crate::commands::list_cmd::list_cmd;
 use crate::commands::login::login;
@@ -35,6 +36,7 @@ pub fn commands() -> &'static ClientCommandType {
         cmds.insert("messages".to_string(), messages);
         cmds.insert("create".to_string(), create);
         cmds.insert("list".to_string(), list_cmd);
+        cmds.insert("help".to_string(), help_cmd);
         cmds
     })
 }
