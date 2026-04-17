@@ -28,8 +28,8 @@ pub fn logout(io_manager: &mut IoManager, _args: &str) {
     match code {
         Some(211) => {
             print_colored_reply(&reply);
-            let uuid = io_manager.user_uuid.take().unwrap_or_default().trim_matches('"').to_string();
-            let name = io_manager.user_name.take().unwrap_or_default().trim_matches('"').to_string();
+            let _uuid = io_manager.user_uuid.take().unwrap_or_default().trim_matches('"').to_string();
+            let _name = io_manager.user_name.take().unwrap_or_default().trim_matches('"').to_string();
         }
         Some(403) => {
             print_colored_reply(&reply);

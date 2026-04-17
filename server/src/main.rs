@@ -20,7 +20,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     setup_signal_handler();
 
     loop {
-        if (SHUTDOWN.load(Ordering::SeqCst)) {
+        if SHUTDOWN.load(Ordering::SeqCst) {
             println!("Shutting down MyTeams server...");
             break;
         }

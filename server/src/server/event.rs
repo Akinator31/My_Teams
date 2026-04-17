@@ -14,6 +14,7 @@ macro_rules! impl_from_event {
     };
 }
 
+#[allow(dead_code)]
 #[derive(Clone, Debug)]
 enum GlobalEvent {
     UserLoggedIn(UserLoggedInEvent),
