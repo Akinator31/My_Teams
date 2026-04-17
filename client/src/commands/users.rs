@@ -25,8 +25,17 @@ pub fn users(io_manager: &mut IoManager, _args: &str) {
                 break;
             }
         };
+        if reply.trim().starts_with("EVENT") {
+            crate::events::events::events(&reply);
+            continue;
+        }
         if (reply_code(&reply)) == Some(200) {
             print_colored_reply(&reply);
+            break;
+        }
+        if (reply_code(&reply)) == Some(401) {
+            print_colored_reply(&reply);
+            ClientLog::client_error_unauthorized();
             break;
         }
         if (reply_code(&reply)) == Some(212) {

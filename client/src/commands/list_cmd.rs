@@ -28,6 +28,11 @@ pub fn list_cmd(io_manager: &mut IoManager, _args: &str) {
             }
         };
 
+        if reply.trim().starts_with("EVENT") {
+            crate::events::events::events(&reply);
+            continue;
+        }
+
         match reply_code(&reply) {
             Some(230) => {
                 print_colored_reply(&reply);

@@ -9,11 +9,11 @@ fn parse_one_quoted_username(args: &str) -> Result<String, &'static str> {
 fn extract_uuid_from_login_reply(line: &str) -> Option<String> {
     let trimmed = line.trim_end_matches(|c| c == '\r' || c == '\n');
     let after = trimmed.split("UUID:").nth(1)?;
-    let uuid = after.trim();
+    let uuid = after.trim().trim_matches('"').to_string();
     if uuid.is_empty() {
         None
     } else {
-        Some(uuid.to_string())
+        Some(uuid)
     }
 }
 
@@ -33,12 +33,19 @@ pub fn login(io_manager: &mut IoManager, args: &str) {
         return;
     }
 
-    let reply = match io_manager.read_line() {
-        Ok(l) => l,
-        Err(e) => {
-            println!("Failed to read server reply: {}", e);
-            return;
+    let reply = loop {
+        let line = match io_manager.read_line() {
+            Ok(line) => line,
+            Err(e) => {
+                println!("Error occurred while reading from stream: {}", e);
+                return;
+            }
+        };
+        if line.trim().starts_with("EVENT") {
+            crate::events::events::events(&line);
+            continue;
         }
+        break line;
     };
 
     match reply_code(&reply) {

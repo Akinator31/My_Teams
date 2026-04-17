@@ -18,12 +18,19 @@ pub fn user(io_manager: &mut IoManager, args: &str) {
         println!("Error occurred while writing to stream: {}", e);
     }
 
-    let reply = match io_manager.read_line() {
-        Ok(line) => line,
-        Err(e) => {
-            println!("Error occurred while reading from stream: {}", e);
-            return;
+    let reply = loop {
+        let line = match io_manager.read_line() {
+            Ok(line) => line,
+            Err(e) => {
+                println!("Error occurred while reading from stream: {}", e);
+                return;
+            }
+        };
+        if line.trim().starts_with("EVENT") {
+            crate::events::events::events(&line);
+            continue;
         }
+        break line;
     };
 
     let code = reply_code(&reply);
@@ -36,6 +43,10 @@ pub fn user(io_manager: &mut IoManager, args: &str) {
             } else {
                 println!("Failed to parse user info from reply: {}", reply);
             }
+        }
+        Some(401) => {
+            print_colored_reply(&reply);
+            ClientLog::client_error_unauthorized();
         }
         Some(404) => {
             print_colored_reply(&reply);

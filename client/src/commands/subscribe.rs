@@ -10,12 +10,19 @@ pub fn subscribe(io_manager: &mut IoManager, args: &str) {
         return;
     }
 
-    let reply = match io_manager.read_line() {
-        Ok(line) => line,
-        Err(e) => {
-            println!("Error occurred while reading from stream: {}", e);
-            return;
+    let reply = loop {
+        let line = match io_manager.read_line() {
+            Ok(line) => line,
+            Err(e) => {
+                println!("Error occurred while reading from stream: {}", e);
+                return;
+            }
+        };
+        if line.trim().starts_with("EVENT") {
+            crate::events::events::events(&line);
+            continue;
         }
+        break line;
     };
 
     let code = reply_code(&reply);
@@ -31,9 +38,19 @@ pub fn subscribe(io_manager: &mut IoManager, args: &str) {
 
             ClientLog::client_print_subscribed(uuid.clone(), args.trim().to_string());
         }
+        Some(401) => {
+            print_colored_reply(&reply);
+            ClientLog::client_error_unauthorized();
+        }
         Some(404) => {
             print_colored_reply(&reply);
-            ClientLog::client_error_unknown_team(args.trim().to_string());
+            let parts: Vec<&str> = reply.splitn(5, ' ').collect();
+            let uuid = if let Some(entity_uuid) = parts.get(4) {
+                 entity_uuid.trim_matches('"').trim_matches(|c| c == '\r' || c == '\n').trim_matches('"').to_string()
+            } else {
+                args.trim().trim_matches('"').to_string()
+            };
+            ClientLog::client_error_unknown_team(uuid);
         }
         _ => {
             print_colored_reply(&reply);
