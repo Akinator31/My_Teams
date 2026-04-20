@@ -37,6 +37,11 @@ pub fn messages(io_manager: &mut IoManager, args: &str) {
             }
         };
 
+        if reply.trim().starts_with("EVENT") {
+            crate::events::events::events(&reply);
+            continue;
+        }
+
         if (reply_code(&reply)) == Some(200) {
             print_colored_reply(&reply);
             break;
@@ -44,15 +49,25 @@ pub fn messages(io_manager: &mut IoManager, args: &str) {
         if (reply_code(&reply)) == Some(401) {
             ClientLog::client_error_unauthorized();
             print_colored_reply(&reply);
+            break;
+        }
+        if (reply_code(&reply)) == Some(404) {
+             let parts: Vec<&str> = reply.splitn(5, ' ').collect();
+             if let Some(entity_uuid) = parts.get(4) {
+                 let uuid = entity_uuid.trim_matches('"').trim_matches(|c| c == '\r' || c == '\n').trim_matches('"').to_string();
+                 ClientLog::client_error_unknown_user(uuid);
+             }
+             print_colored_reply(&reply);
+             break;
         }
         if (reply_code(&reply)) == Some(221) {
             print_colored_reply(&reply);
             let parts: Vec<&str> = reply.splitn(4, ' ').collect();
             if parts.len() == 4 {
-                let sender_uuid: String = parts[1].to_string();
+                let sender_uuid: String = parts[1].trim_matches('"').to_string();
                 let timestamp_string = &parse_quoted_segments(parts[2])[0];
                 let timestamp: i64 = timestamp_string.parse().unwrap_or(0);
-                let body: String = parts[3].trim().to_string();
+                let body: String = parts[3].trim().trim_matches('"').trim_matches(|c| c == '\r' || c == '\n').trim_matches('"').to_string();
                 if sender_uuid.is_empty() || body.is_empty() {
                     println!("Received an invalid message format.");
                     continue;

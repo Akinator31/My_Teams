@@ -55,7 +55,12 @@ impl MyTeamsServerData {
             };
 
             match split_args(&line).as_slice() {
-                ["USER", args @ ..] if self.load_user(args) => Self::logging_load("USER", args),
+                ["USER", args @ ..] if self.load_user(args) => {
+                    let uuid = args.get(0).map(|s| s.trim_matches('"')).unwrap_or("");
+                    let name = args.get(1).map(|s| s.trim_matches('"')).unwrap_or("");
+                    libs::ServerLog::server_event_user_loaded(uuid.to_string(), name.to_string());
+                    Self::logging_load("USER", args);
+                }
                 ["DIRECT_MESSAGES", args @ ..] if self.load_dm(args) => {
                     Self::logging_load("DIRECT_MESSAGES", args)
                 }

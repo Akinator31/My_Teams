@@ -1,5 +1,7 @@
 use crate::errors::myteams_errors::MyTeamsServerError;
-use crate::errors::myteams_errors::MyTeamsServerError::{AlreadyExist, ChannelNotFound, TeamNotFound, ThreadNotFound};
+use crate::errors::myteams_errors::MyTeamsServerError::{
+    AlreadyExist, ChannelNotFound, TeamNotFound, ThreadNotFound,
+};
 use crate::server::data::channel::Channel;
 use crate::server::data::save::MyTeamsSave;
 use crate::server::data::team::Team;
@@ -170,7 +172,11 @@ impl MyTeamsServerData {
         None
     }
 
-    pub fn find_channels_by_uuid(&mut self, team_index: usize, channel_uuid: String) -> Option<usize> {
+    pub fn find_channels_by_uuid(
+        &mut self,
+        team_index: usize,
+        channel_uuid: String,
+    ) -> Option<usize> {
         for (channel_index, channel) in self.teams[team_index].channels.iter().enumerate() {
             if channel.uuid == channel_uuid {
                 return Some(channel_index);
@@ -179,7 +185,11 @@ impl MyTeamsServerData {
         None
     }
 
-    pub fn find_channels_by_name(&mut self, team_index: usize, channel_name: String) -> Option<usize> {
+    pub fn find_channels_by_name(
+        &mut self,
+        team_index: usize,
+        channel_name: String,
+    ) -> Option<usize> {
         for (channel_index, channel) in self.teams[team_index].channels.iter().enumerate() {
             if channel.name == channel_name {
                 return Some(channel_index);
@@ -251,13 +261,17 @@ impl MyTeamsServerData {
         channel_name: String,
         channel_description: String,
     ) -> Result<(String, usize), MyTeamsServerError> {
-        let new_channel = Channel::new(team_uuid.clone(), channel_name.clone(), channel_description);
+        let new_channel =
+            Channel::new(team_uuid.clone(), channel_name.clone(), channel_description);
 
         let Some(team_index) = self.find_teams_by_uuid(team_uuid.clone()) else {
             return Err(TeamNotFound(team_uuid));
         };
 
-        if self.find_channels_by_name(team_index, channel_name).is_some() {
+        if self
+            .find_channels_by_name(team_index, channel_name)
+            .is_some()
+        {
             return Err(AlreadyExist);
         }
 
@@ -289,11 +303,15 @@ impl MyTeamsServerData {
         let Some(team_index) = self.find_teams_by_uuid(team_uuid.clone()) else {
             return Err(TeamNotFound(team_uuid));
         };
-        let Some(channel_index) = self.find_channels_by_uuid(team_index, channel_uuid.clone()) else {
+        let Some(channel_index) = self.find_channels_by_uuid(team_index, channel_uuid.clone())
+        else {
             return Err(ChannelNotFound(channel_uuid));
         };
 
-        if self.find_threads_by_name(team_index, channel_index, thread_title).is_some() {
+        if self
+            .find_threads_by_name(team_index, channel_index, thread_title)
+            .is_some()
+        {
             return Err(AlreadyExist);
         }
 
@@ -338,10 +356,13 @@ impl MyTeamsServerData {
         let Some(team_index) = self.find_teams_by_uuid(team_uuid.clone()) else {
             return Err(TeamNotFound(team_uuid));
         };
-        let Some(channel_index) = self.find_channels_by_uuid(team_index, channel_uuid.clone()) else {
+        let Some(channel_index) = self.find_channels_by_uuid(team_index, channel_uuid.clone())
+        else {
             return Err(ChannelNotFound(channel_uuid));
         };
-        let Some(thread_index) = self.find_threads_by_uuid(team_index, channel_index, thread_uuid.clone()) else {
+        let Some(thread_index) =
+            self.find_threads_by_uuid(team_index, channel_index, thread_uuid.clone())
+        else {
             return Err(ThreadNotFound(thread_uuid));
         };
 
@@ -409,7 +430,7 @@ impl MyTeamsSave for DirectMessages {
 
 #[cfg(test)]
 mod test {
-    use crate::server::data::UserPair;
+    use crate::server::data::{MyTeamsServerData, UserPair};
     use std::collections::HashMap;
 
     #[test]
@@ -421,5 +442,94 @@ mod test {
         hashmap.insert(pair1.clone(), "default".to_string());
         assert!(hashmap.contains_key(&pair1));
         assert!(hashmap.contains_key(&pair2));
+    }
+
+    #[test]
+    fn test_user_creation() {
+        let mut data = MyTeamsServerData::new();
+        let name = "Alice".to_string();
+        let user = data.create_user(&name);
+        assert_eq!(user.user_name, name);
+        assert!(data.user_exist_by_name(&name).is_some());
+        assert!(data.user_exist_by_uuid(&user.uuid).is_some());
+    }
+
+    #[test]
+    fn test_team_creation() {
+        let mut data = MyTeamsServerData::new();
+        let creator_uuid = "user-uuid".to_string();
+        let name = "Team1".to_string();
+        let desc = "Description".to_string();
+
+        let result = data.create_team(creator_uuid.clone(), name.clone(), desc.clone());
+        assert!(result.is_ok());
+        let (uuid, index) = result.unwrap();
+        assert_eq!(data.teams[index].name, name);
+        assert_eq!(data.teams[index].uuid, uuid);
+
+        let result2 = data.create_team(creator_uuid, name, desc);
+        assert!(result2.is_err());
+    }
+
+    #[test]
+    fn test_channel_creation() {
+        let mut data = MyTeamsServerData::new();
+        let team_uuid = data
+            .create_team("user".into(), "T1".into(), "D1".into())
+            .unwrap()
+            .0;
+
+        let result = data.create_channel(team_uuid.clone(), "C1".into(), "CD1".into());
+        assert!(result.is_ok());
+        let (channel_uuid, index) = result.unwrap();
+        assert_eq!(data.teams[0].channels[index].uuid, channel_uuid);
+
+        let result_err = data.create_channel("wrong-team".into(), "C2".into(), "CD2".into());
+        assert!(result_err.is_err());
+    }
+
+    #[test]
+    fn test_thread_and_reply_creation() {
+        let mut data = MyTeamsServerData::new();
+        let team_uuid = data
+            .create_team("user".into(), "T1".into(), "D1".into())
+            .unwrap()
+            .0;
+        let channel_uuid = data
+            .create_channel(team_uuid.clone(), "C1".into(), "CD1".into())
+            .unwrap()
+            .0;
+
+        let thread_result = data.create_thread(
+            team_uuid.clone(),
+            "user".into(),
+            channel_uuid.clone(),
+            "Title".into(),
+            "Body".into(),
+        );
+        assert!(thread_result.is_ok());
+        let (thread_uuid, thread_index, _) = thread_result.unwrap();
+
+        assert_eq!(
+            data.teams[0].channels[0].threads[thread_index]
+                .comments
+                .len(),
+            1
+        );
+
+        let reply_result = data.create_reply(
+            team_uuid,
+            "user".into(),
+            channel_uuid,
+            thread_uuid,
+            "New Reply".into(),
+        );
+        assert!(reply_result.is_ok());
+        assert_eq!(
+            data.teams[0].channels[0].threads[thread_index]
+                .comments
+                .len(),
+            2
+        );
     }
 }

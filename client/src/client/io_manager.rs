@@ -9,16 +9,19 @@ const STDIN_FD: i32 = 0;
 unsafe extern "C" {
     fn read(fd: i32, buf: *mut u8, count: usize) -> isize;
 }
+#[allow(dead_code)]
 pub struct ContextChannel {
     pub team: String,
     pub channel: String,
 }
+#[allow(dead_code)]
 pub struct ContextThread {
     pub team: String,
     pub channel: String,
     pub thread: String,
 }
 
+#[allow(dead_code)]
 pub enum Context {
     None,
     Team(String),

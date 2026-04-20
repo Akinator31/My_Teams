@@ -18,12 +18,19 @@ pub fn create(io_manager: &mut IoManager, args: &str) {
         return;
     }
 
-    let reply = match io_manager.read_line() {
-        Ok(line) => line,
-        Err(e) => {
-            println!("Error while reading from stream: {}", e);
-            return;
+    let reply = loop {
+        let line = match io_manager.read_line() {
+            Ok(line) => line,
+            Err(e) => {
+                println!("Error while reading from stream: {}", e);
+                return;
+            }
+        };
+        if line.trim().starts_with("EVENT") {
+            crate::events::events::events(&line);
+            continue;
         }
+        break line;
     };
     match (reply_code(&reply), &io_manager.context) {
         (Some(201), Context::None) => {
@@ -73,20 +80,25 @@ pub fn create(io_manager: &mut IoManager, args: &str) {
             ClientLog::client_print_reply_created(thread_uuid, user_uuid, reply_timestamp, reply_body);
         }
 
+        (Some(401), _) => {
+            print_colored_reply(&reply);
+            ClientLog::client_error_unauthorized();
+        }
         (Some(404), _ctx) => {
             let parts: Vec<&str> = reply.splitn(5, ' ').collect();
             if let (Some(type_err), Some(entity_uuid)) = (parts.get(1), parts.get(4)) {
+                let uuid = entity_uuid.trim_matches('"').trim_matches(|c| c == '\r' || c == '\n').trim_matches('"').to_string();
                 match *type_err {
                     "TEAM" => {
-                        ClientLog::client_error_unknown_team(entity_uuid.to_string());
+                        ClientLog::client_error_unknown_team(uuid);
                         print_colored_reply(&reply);
                     }
                     "CHANNEL" => {
-                        ClientLog::client_error_unknown_channel(entity_uuid.to_string());
+                        ClientLog::client_error_unknown_channel(uuid);
                         print_colored_reply(&reply);
                     }
                     "THREAD" => {
-                        ClientLog::client_error_unknown_thread(entity_uuid.to_string());
+                        ClientLog::client_error_unknown_thread(uuid);
                         print_colored_reply(&reply);
                     }
                     _ => {

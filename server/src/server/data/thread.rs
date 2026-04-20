@@ -130,7 +130,7 @@ impl MyTeamsSave for Thread {
 
     fn load(args: &[&str]) -> Option<Self> {
         match args {
-            [team, channel, uuid, author, title, body, timestamp] => Some(Thread {
+            [team, channel, uuid, author, title, body, _timestamp] => Some(Thread {
                 team: team.trim_matches('"').to_string(),
                 channel: channel.trim_matches('"').to_string(),
                 uuid: uuid.trim_matches('"').to_string(),

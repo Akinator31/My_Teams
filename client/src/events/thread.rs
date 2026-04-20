@@ -16,7 +16,7 @@ pub fn created_thread(data: &str) {
 pub fn thread_reply(data: &str) {
     let parts = parse_quoted_segments(data);
     let team_uuid = parts.get(0).cloned().unwrap_or_default();
-    let thread_uuid = parts.get(1).cloned().unwrap_or_default();
+    let thread_uuid = parts.get(4).cloned().unwrap_or_default();
     let body = parts.get(2).cloned().unwrap_or_default();
     let creator_uuid = parts.get(3).cloned().unwrap_or_default();
     ClientLog::client_event_thread_reply_received(team_uuid, thread_uuid, creator_uuid, body);
